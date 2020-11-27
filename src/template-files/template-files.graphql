@@ -1,0 +1,34 @@
+scalar Date
+
+type TemplateFile {
+  id: ID!
+  name: String!
+  mimeType: String!
+  templateType: TemplateType!
+  currentFileOfType: TemplateType
+  createdAt: Date!
+  updatedAt: Date
+}
+
+# input CreateTemplateFileInput {
+#   templateType: TemplateType!  # make it parametrical to use the Type in CreateTemplateType
+#   currentFileOfType: TemplateType
+#   # file: File!
+# }
+
+# input UpdateTemplateFileInput {
+#   id: ID!
+#   templateType: TemplateType
+#   currentFileOfType: TemplateType
+# }
+
+type Query {
+  templateFiles: [TemplateFile]!
+  templateFile(id: ID!): TemplateFile
+}
+
+# type Mutation {
+#   createTemplateFile(createTemplateFileInput: CreateTemplateFileInput!): TemplateFile!
+#   updateTemplateFile(updateTemplateFileInput: UpdateTemplateFileInput!): TemplateFile!
+#   removeTemplateFile(id: ID!): TemplateFile
+# }

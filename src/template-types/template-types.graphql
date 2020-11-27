@@ -1,0 +1,31 @@
+type TemplateType {
+  id: ID!
+  title: String!
+  active: Boolean!
+  files: [TemplateFile!]
+  currentFile: TemplateFile
+}
+
+# input CreateTemplateTypeInput {
+#   title: String!
+#   active: Boolean
+# }
+
+# input UpdateTemplateTypeInput {
+#   id: ID!
+#   title: String
+#   active: Boolean
+#   files: [TemplateFile!]
+#   currentFile: TemplateFile
+# }
+
+type Query {
+  templateTypes: [TemplateType]!
+  templateType(id: ID!): TemplateType
+}
+
+# type Mutation {
+#   createTemplateType(createTemplateTypeInput: CreateTemplateTypeInput!): TemplateType!
+#   updateTemplateType(updateTemplateTypeInput: UpdateTemplateTypeInput!): TemplateType!
+#   removeTemplateType(id: ID!): TemplateType
+# }
