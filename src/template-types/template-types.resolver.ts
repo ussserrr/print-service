@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
 
-import { TemplateTypesService } from './template-types.service';
-
 import { TemplateFilesService } from 'src/template-files/template-files.service';
+
+import { TemplateTypesService } from './template-types.service';
 
 // import { CreateTemplateTypeInput } from './dto/create-template-type.input';
 // import { UpdateTemplateTypeInput } from './dto/update-template-type.input';
