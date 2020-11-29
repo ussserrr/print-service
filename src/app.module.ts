@@ -4,8 +4,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 import { TemplateFilesModule } from './template-files/template-files.module';
 import { TemplateTypesModule } from './template-types/template-types.module';
@@ -13,8 +13,8 @@ import { TemplateTypesModule } from './template-types/template-types.module';
 import { TemplateFile } from "./template-files/entities/template-file.entity";
 import { TemplateType } from "./template-types/entities/template-type.entity";
 
-// import { TemplateFilesService } from "./template-files/template-files.service";
-// import { TemplateTypesService } from "./template-types/template-types.service";
+import { TemplateFilesService } from "./template-files/template-files.service";
+import { TemplateTypesService } from "./template-types/template-types.service";
 
 
 @Module({
@@ -25,10 +25,7 @@ import { TemplateType } from "./template-types/entities/template-type.entity";
       username: 'chufyrev',
       database: 'chufyrev',
       synchronize: true,
-      entities: [
-        TemplateFile,
-        TemplateType
-      ]
+      entities: [TemplateFile, TemplateType]
     }),
     GraphQLModule.forRoot({
       typePaths: ['./**/*.graphql'],
@@ -38,10 +35,11 @@ import { TemplateType } from "./template-types/entities/template-type.entity";
       }
     }),
 
-    TemplateFilesModule, TemplateTypesModule
+    TemplateFilesModule,
+    TemplateTypesModule
   ],
-  // controllers: [AppController],
-  // providers: [AppService, TemplateTypesService, TemplateFilesService],
-  // exports: [TypeOrmModule]
+  controllers: [AppController],
+  providers: [AppService, TemplateTypesService, TemplateFilesService],
+  exports: [AppService, TypeOrmModule, TemplateTypesService, TemplateFilesService]
 })
 export class AppModule {}

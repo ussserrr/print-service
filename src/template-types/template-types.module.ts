@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { forwardRef } from '@nestjs/common/utils/forward-ref.util';
 
-import { TemplateFile } from 'src/template-files/entities/template-file.entity';
+import { TemplateFilesModule } from 'src/template-files/template-files.module';
 import { TemplateFilesService } from 'src/template-files/template-files.service';
 
 import { TemplateType } from './entities/template-type.entity';
@@ -10,7 +11,10 @@ import { TemplateTypesResolver } from './template-types.resolver';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ TemplateType, TemplateFile ]), TemplateFilesService],
+  imports: [
+    TypeOrmModule.forFeature([TemplateType]),
+    forwardRef(() => TemplateFilesModule)
+  ],
   providers: [TemplateTypesResolver, TemplateTypesService, TemplateFilesService],
   exports: [TemplateTypesService, TypeOrmModule]
 })

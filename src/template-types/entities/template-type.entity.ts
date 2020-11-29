@@ -16,6 +16,12 @@ export class TemplateType {
   @Column({ default: true })
   active!: boolean;
 
+  @Column({
+    nullable: false,
+    update: false
+  })
+  folder!: string;
+
   @OneToMany(() => TemplateFile, file => file.templateType)
   files!: TemplateFile[];
 
