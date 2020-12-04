@@ -2,10 +2,10 @@ scalar Date
 
 type TemplateFile {
   id: ID!
-  name: String!
+  title: String!
   mimeType: String!
   templateType: TemplateType!
-  currentFileOfType: TemplateType
+  isCurrentFileOfItsType: Boolean!
   createdAt: Date!
   updatedAt: Date
 }
@@ -22,8 +22,27 @@ type TemplateFile {
 #   currentFileOfType: TemplateType
 # }
 
+input TemplateFilesFilter {
+  common: CommonFilter = {}
+  templateTypes: [ID!]
+  createdAt: [DateFilter!]
+  updatedAt: [DateFilter!]
+}
+
+input TemplateFilesRequestOptions {
+  page: PageInput = {}
+}
+
+type TemplateFilesPageResult {
+  items: [TemplateFile!]!
+  total: Int!
+}
+
 type Query {
-  templateFiles: [TemplateFile]!
+  templateFiles(
+    filter: TemplateFilesFilter = {}
+    options: TemplateFilesRequestOptions = {}
+  ): TemplateFilesPageResult!
   templateFile(id: ID!): TemplateFile
 }
 

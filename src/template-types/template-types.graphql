@@ -1,8 +1,14 @@
+enum Owner {
+  DRIVER
+  CAR
+}
+
 type TemplateType {
   id: ID!
+  owner: Owner!
   title: String!
   active: Boolean!
-  files: [TemplateFile!]
+  files: [TemplateFile!]!
   currentFile: TemplateFile
 }
 
@@ -19,8 +25,29 @@ type TemplateType {
 #   currentFile: TemplateFile
 # }
 
+input TemplateTypesFilter {
+  common: CommonFilter = {}
+  active: Boolean
+  owners: [Owner!]
+  # fileIds,  // TODO: files of these types includes given
+  # currentFileIds
+}
+
+input TemplateTypesRequestOptions {
+  page: PageInput = {}
+  listPageOfFiles: Boolean = false
+}
+
+type TemplateTypesPageResult {
+  items: [TemplateType!]!
+  total: Int!
+}
+
 type Query {
-  templateTypes: [TemplateType]!
+  templateTypes(
+    filter: TemplateTypesFilter = {}
+    options: TemplateTypesRequestOptions = {}
+  ): TemplateTypesPageResult!
   templateType(id: ID!): TemplateType
 }
 

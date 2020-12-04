@@ -3,28 +3,22 @@ import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/g
 import { TemplateFilesService } from './template-files.service';
 
 import { TemplateTypesService } from 'src/template-types/template-types.service';
+import * as gqlSchema from "src/graphql";
 
 // import { CreateTemplateFileInput } from './dto/create-template-file.input';
 // import { UpdateTemplateFileInput } from './dto/update-template-file.input';
 
 
 @Resolver('TemplateFile')
-export class TemplateFilesResolver {
+export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   constructor(
     private readonly templateFilesService: TemplateFilesService,
     private readonly templateTypesService: TemplateTypesService
   ) {}
 
   @ResolveField('templateType')
-  getTemplateType(@Parent() file) {
-    const { id } = file;
-    return this.templateTypesService.findOne(id);
-  }
-
-  @ResolveField('currentFileOfType')
-  getCurrentFileOfType(@Parent() file) {  // TODO: try to assign multiple ResolveField() to single resolver
-    const { id } = file;
-    return this.templateTypesService.findOne(id);
+  getTemplateType(@Parent() file: gqlSchema.TemplateFile) {
+    return this.templateTypesService.findOne(file.templateType.id);
   }
 
   // @Mutation('createTemplateFile')
@@ -32,14 +26,25 @@ export class TemplateFilesResolver {
   //   return this.templateFilesService.create(createTemplateFileInput);
   // }
 
-  @Query('templateFiles')
-  findAll() {
-    return this.templateFilesService.findAll();
+  // Part of the IQuery, so the name should be the same as the field
+  @Query()
+  async templateFiles(
+    @Args('filter') filter?: gqlSchema.TemplateFilesFilter,
+    @Args('options') options?: gqlSchema.TemplateFilesRequestOptions
+  ): Promise<gqlSchema.TemplateFilesPageResult> {
+    console.log('templateFiles', filter, options);
+    const [ data, count ] = await this.templateFilesService.findAll(filter, options);
+    const response = new gqlSchema.TemplateFilesPageResult();
+    console.log('templateFiles', data);
+    response.items = data;
+    response.total = count;
+    return response;
   }
 
-  @Query('templateFile')
-  findOne(@Args('id') id: number) {
-    return this.templateFilesService.findOne(id);
+  // Part of the IQuery, so the name should be the same as the field
+  @Query()
+  templateFile(@Args('id') id: string): Promise<gqlSchema.TemplateFile> {
+    return this.templateFilesService.findOne(id, ['templateType', 'currentFileOfType']);
   }
 
   // @Mutation('updateTemplateFile')
@@ -48,7 +53,7 @@ export class TemplateFilesResolver {
   // }
 
   // @Mutation('removeTemplateFile')
-  // remove(@Args('id') id: number) {
+  // remove(@Args('id') id: string) {
   //   return this.templateFilesService.remove(id);
   // }
 }

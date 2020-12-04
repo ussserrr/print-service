@@ -3,28 +3,43 @@ import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/g
 import { TemplateFilesService } from 'src/template-files/template-files.service';
 
 import { TemplateTypesService } from './template-types.service';
+import * as gqlSchema from "src/graphql";
 
 // import { CreateTemplateTypeInput } from './dto/create-template-type.input';
 // import { UpdateTemplateTypeInput } from './dto/update-template-type.input';
 
 
 @Resolver('TemplateType')
-export class TemplateTypesResolver {
+export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   constructor(
     private readonly templateTypesService: TemplateTypesService,
     private readonly templateFilesService: TemplateFilesService
   ) {}
 
+  @ResolveField('owner')
+  getOwner(@Parent() type: gqlSchema.TemplateType): gqlSchema.Owner {
+    return type.owner.toUpperCase() as gqlSchema.Owner;
+  }
+
   @ResolveField('files')
-  getFiles(@Parent() type) {
-    const { id } = type;
-    return this.templateFilesService.findAll();
+  async getFilesOf(@Parent() type: gqlSchema.TemplateType): Promise<gqlSchema.TemplateFile[]> {
+    const filter = new gqlSchema.TemplateFilesFilter();
+    filter.templateTypes = [type.id];
+    const page = new gqlSchema.PageInput();
+    page.limit = 10;
+    page.offset = 0;
+    const options = new gqlSchema.TemplateFilesRequestOptions();
+    options.page = page;
+    const [ data, ] = await this.templateFilesService.findAll(filter, options);
+    return data;
   }
 
   @ResolveField('currentFile')
-  getCurrentFile(@Parent() type) {
-    const { id } = type;
-    return this.templateFilesService.findOne(id);
+  getCurrentFileOf(@Parent() type: gqlSchema.TemplateType): Promise<gqlSchema.TemplateFile | undefined> {
+    // console.log('asas', type);
+    if (type.currentFile) {
+      return this.templateFilesService.findOne(type.currentFile.id);
+    }
   }
 
   // @Mutation('createTemplateType')
@@ -32,14 +47,25 @@ export class TemplateTypesResolver {
   //   return this.templateTypesService.create(createTemplateTypeInput);
   // }
 
-  @Query('templateTypes')
-  findAll() {
-    return this.templateTypesService.findAll();
+  // Part of the IQuery, so the name should be the same as the field
+  @Query()
+  async templateTypes(
+    @Args('filter') filter: gqlSchema.TemplateTypesFilter,
+    @Args('options') options: gqlSchema.TemplateTypesRequestOptions
+  ): Promise<gqlSchema.TemplateTypesPageResult> {
+    console.log('templateTypes', filter, options);
+    const [ data, count ] = await this.templateTypesService.findAll(filter, options);
+    const response = new gqlSchema.TemplateTypesPageResult();
+    // console.log('templateTypes', data);
+    response.items = data;
+    response.total = count;
+    return response;
   }
 
-  @Query('templateType')
-  findOne(@Args('id') id: number) {
-    return this.templateTypesService.findOne(id);
+  // Part of the IQuery, so the name should be the same as the field
+  @Query()
+  templateType(@Args('id') id: string): Promise<gqlSchema.TemplateType> {
+    return this.templateTypesService.findOne(id, ['currentFile', 'files']);
   }
 
   // @Mutation('updateTemplateType')
@@ -48,7 +74,7 @@ export class TemplateTypesResolver {
   // }
 
   // @Mutation('removeTemplateType')
-  // remove(@Args('id') id: number) {
+  // remove(@Args('id') id: string) {
   //   return this.templateTypesService.remove(id);
   // }
 }

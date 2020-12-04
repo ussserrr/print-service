@@ -1,0 +1,35 @@
+# Remember guys, https://en.wikipedia.org/wiki/Composition_over_inheritance 🙂
+# TODO: rename this module to something more suitable
+
+input CommonFilter {
+  ids: [ID!]
+  search: String
+}
+
+enum Operator {
+  LT
+  LE
+  GT
+  GE
+}
+
+input DateFilter {
+  operator: Operator
+  value: Date!
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+input SortBy {
+  field: String!
+  order: SortOrder!
+}
+
+input PageInput {
+  limit: Int = 10
+  offset: Int = 0
+  sortBy: SortBy
+}
