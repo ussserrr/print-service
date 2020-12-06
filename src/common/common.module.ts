@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { DateScalar } from './scalars/date.scalar';
+import { DateScalar } from './graphql/scalars/date.scalar';
 
 
 @Module({
