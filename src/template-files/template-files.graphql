@@ -7,7 +7,7 @@ type TemplateFile {
   templateType: TemplateType!
   isCurrentFileOfItsType: Boolean!
   createdAt: Date!
-  updatedAt: Date
+  updatedAt: Date!
 }
 
 # input CreateTemplateFileInput {

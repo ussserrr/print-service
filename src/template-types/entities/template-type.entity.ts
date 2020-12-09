@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 import { TemplateFile } from 'src/template-files/entities/template-file.entity';
 
@@ -31,14 +31,17 @@ export class TemplateType {
   @Column({ update: false })
   folder!: string;
 
-  @OneToMany(() => TemplateFile, file => file.templateType)
-  files!: TemplateFile[];
-
   @OneToOne(() => TemplateFile, currentFile => currentFile.currentFileOfType, {
     cascade: true,
     nullable: true
     // eager: true
   })
   @JoinColumn()
-  currentFile!: TemplateFile;
+  currentFile?: TemplateFile;
+
+
+  // shouldJoinFiles = false
+
+  // @OneToMany(() => TemplateFile, file => file.templateType)
+  // files?: TemplateFile[];
 }

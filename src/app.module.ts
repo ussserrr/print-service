@@ -30,8 +30,7 @@ import { TemplateTypesService } from "./template-types/template-types.service";
     GraphQLModule.forRoot({
       typePaths: ['./src/**/*.graphql'],
       definitions: {
-        path: join(process.cwd(), 'src/graphql.ts'),  // runtime-generated file
-        outputAs: 'class'
+        path: join(process.cwd(), 'src/graphql.ts')  // runtime-generated file
       }
     }),
 

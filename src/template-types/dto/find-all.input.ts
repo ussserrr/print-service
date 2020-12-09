@@ -4,23 +4,13 @@ import { ArrayNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 
-export class FilterDto implements gqlSchema.TemplateFilesFilter {
+export class FilterDto implements gqlSchema.TemplateTypesFilter {
   @ValidateNested()
   @Type(() => commonTypes.CommonFilterDto)
   common?: commonTypes.CommonFilterDto;
 
-  @ArrayNotEmpty()
-  templateTypes?: string[];
-
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => commonTypes.DateFilterDto)
-  createdAt?: commonTypes.DateFilterDto[];
-
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => commonTypes.DateFilterDto)
-  updatedAt?: commonTypes.DateFilterDto[];
+  @ArrayNotEmpty() owners?: gqlSchema.Owner[];
+  active?: boolean;
 
   constructor(map?: Pick<FilterDto, keyof FilterDto>) {
     if (map?.common && !(map.common instanceof commonTypes.CommonFilterDto)) {
@@ -32,10 +22,12 @@ export class FilterDto implements gqlSchema.TemplateFilesFilter {
 }
 
 
-export class RequestOptionsDto implements gqlSchema.TemplateFilesRequestOptions {
+export class RequestOptionsDto implements gqlSchema.TemplateTypesRequestOptions {
   @ValidateNested()
   @Type(() => commonTypes.PageInputDto)
   page? = new commonTypes.PageInputDto();
+
+  listFiles!: boolean;
 
   constructor(map?: Pick<RequestOptionsDto, keyof RequestOptionsDto>) {
     if (map?.page && !(map.page instanceof commonTypes.PageInputDto)) {

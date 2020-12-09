@@ -8,7 +8,7 @@ export class TemplateFile {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => TemplateType, type => type.files)
+  @ManyToOne(() => TemplateType)
   templateType!: TemplateType;
 
   @Column()
@@ -18,18 +18,17 @@ export class TemplateFile {
   mimeType!: string;
 
   @Column({ nullable: true })  // nullable false by default
-  title!: string;
+  title: string;
 
-  @OneToOne(() => TemplateType, currentFileOfType => currentFileOfType.currentFile)
-  currentFileOfType!: TemplateType;
+  @OneToOne(() => TemplateType, currentFileOfType => currentFileOfType.currentFile, {
+    nullable: true
+  })
+  currentFileOfType?: TemplateType;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp',
-    nullable: true
-  })
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
 
 

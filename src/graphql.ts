@@ -23,84 +23,81 @@ export enum Owner {
     CAR = "CAR"
 }
 
-export class CommonFilter {
+export interface CommonFilter {
     ids?: string[];
     search?: string;
 }
 
-export class DateFilter {
-    operator?: Operator;
+export interface DateFilter {
+    operator: Operator;
     value: Date;
 }
 
-export class SortBy {
+export interface SortBy {
     field: string;
     order: SortOrder;
 }
 
-export class PageInput {
+export interface PageInput {
     limit?: number;
     offset?: number;
     sortBy?: SortBy;
 }
 
-export class TemplateFilesFilter {
+export interface TemplateFilesFilter {
     common?: CommonFilter;
     templateTypes?: string[];
     createdAt?: DateFilter[];
     updatedAt?: DateFilter[];
 }
 
-export class TemplateFilesRequestOptions {
+export interface TemplateFilesRequestOptions {
     page?: PageInput;
 }
 
-export class TemplateTypesFilter {
+export interface TemplateTypesFilter {
     common?: CommonFilter;
     active?: boolean;
     owners?: Owner[];
 }
 
-export class TemplateTypesRequestOptions {
+export interface TemplateTypesRequestOptions {
     page?: PageInput;
-    listPageOfFiles?: boolean;
+    listFiles?: boolean;
 }
 
-export class TemplateFile {
+export interface TemplateFile {
     id: string;
     title: string;
     mimeType: string;
     templateType: TemplateType;
     isCurrentFileOfItsType: boolean;
     createdAt: Date;
-    updatedAt?: Date;
+    updatedAt: Date;
 }
 
-export class TemplateFilesPageResult {
+export interface TemplateFilesPageResult {
     items: TemplateFile[];
     total: number;
 }
 
-export abstract class IQuery {
-    abstract templateFiles(filter?: TemplateFilesFilter, options?: TemplateFilesRequestOptions): TemplateFilesPageResult | Promise<TemplateFilesPageResult>;
-
-    abstract templateFile(id: string): TemplateFile | Promise<TemplateFile>;
-
-    abstract templateTypes(filter?: TemplateTypesFilter, options?: TemplateTypesRequestOptions): TemplateTypesPageResult | Promise<TemplateTypesPageResult>;
-
-    abstract templateType(id: string): TemplateType | Promise<TemplateType>;
+export interface IQuery {
+    templateFiles(filter?: TemplateFilesFilter, options?: TemplateFilesRequestOptions): TemplateFilesPageResult | Promise<TemplateFilesPageResult>;
+    templateFile(id: string): TemplateFile | Promise<TemplateFile>;
+    templateTypes(filter?: TemplateTypesFilter, options?: TemplateTypesRequestOptions): TemplateTypesPageResult | Promise<TemplateTypesPageResult>;
+    templateType(id: string): TemplateType | Promise<TemplateType>;
 }
 
-export class TemplateType {
+export interface TemplateType {
     id: string;
     owner: Owner;
     title: string;
     active: boolean;
-    files: TemplateFile[];
+    files?: TemplateFilesPageResult;
     currentFile?: TemplateFile;
 }
 
-export class TemplateTypesPageResult {
+export interface TemplateTypesPageResult {
     items: TemplateType[];
     total: number;
 }

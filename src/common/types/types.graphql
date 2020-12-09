@@ -1,5 +1,5 @@
 # Remember guys, https://en.wikipedia.org/wiki/Composition_over_inheritance 🙂
-# TODO: rename this module to something more suitable
+# GraphQL doesn't fully supports inheritance/generics anyway
 
 input CommonFilter {
   ids: [ID!]
@@ -14,7 +14,7 @@ enum Operator {
 }
 
 input DateFilter {
-  operator: Operator
+  operator: Operator!
   value: Date!
 }
 

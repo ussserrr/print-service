@@ -8,7 +8,7 @@ type TemplateType {
   owner: Owner!
   title: String!
   active: Boolean!
-  files: [TemplateFile!]!
+  files: TemplateFilesPageResult
   currentFile: TemplateFile
 }
 
@@ -35,7 +35,7 @@ input TemplateTypesFilter {
 
 input TemplateTypesRequestOptions {
   page: PageInput = {}
-  listPageOfFiles: Boolean = false
+  listFiles: Boolean = false  # TODO: describe in docs (page of recently updated files)
 }
 
 type TemplateTypesPageResult {
