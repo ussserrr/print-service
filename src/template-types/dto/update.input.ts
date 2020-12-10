@@ -1,4 +1,4 @@
-import { CreateTemplateTypeInput } from './create-template-type.input';
+import { CreateTemplateTypeInput } from './create.input';
 import { PartialType } from '@nestjs/graphql';
 
 export class UpdateTemplateTypeInput extends PartialType(CreateTemplateTypeInput) {

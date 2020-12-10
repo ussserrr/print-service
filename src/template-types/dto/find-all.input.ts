@@ -9,7 +9,7 @@ export class FilterDto implements gqlSchema.TemplateTypesFilter {
   @Type(() => commonTypes.CommonFilterDto)
   common?: commonTypes.CommonFilterDto;
 
-  @ArrayNotEmpty() owners?: gqlSchema.Owner[];
+  @ArrayNotEmpty() owners?: gqlSchema.Owner[];  // TODO test this validation
   active?: boolean;
 
   constructor(map?: Pick<FilterDto, keyof FilterDto>) {

@@ -5,7 +5,7 @@ type TemplateFile {
   title: String!
   mimeType: String!
   templateType: TemplateType!
-  isCurrentFileOfItsType: Boolean!
+  isCurrentFileOfItsType: Boolean
   createdAt: Date!
   updatedAt: Date!
 }

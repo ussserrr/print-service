@@ -71,7 +71,7 @@ export interface TemplateFile {
     title: string;
     mimeType: string;
     templateType: TemplateType;
-    isCurrentFileOfItsType: boolean;
+    isCurrentFileOfItsType?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

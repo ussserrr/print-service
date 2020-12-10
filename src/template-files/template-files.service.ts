@@ -8,18 +8,15 @@ import { TemplateFile } from './entities/template-file.entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
-import { CreateTemplateFileInput } from './dto/create-template-file.input';
-import { UpdateTemplateFileInput } from './dto/update-template-file.input';
+import { CreateTemplateFileInput } from './dto/create.input';
+import { UpdateTemplateFileInput } from './dto/update.input';
 
 
 @Injectable()
 export class TemplateFilesService {
   columns: string[] = [];
 
-  constructor(
-    @InjectRepository(TemplateFile)
-    private repository: Repository<TemplateFile>
-  ) {
+  constructor(@InjectRepository(TemplateFile) private repository: Repository<TemplateFile>) {
     this.columns = this.repository.metadata.ownColumns.map(column => column.propertyName);
   }
 
@@ -38,9 +35,6 @@ export class TemplateFilesService {
         const uniqVarName = field + 'Search';
         return qb.orWhere(`file.${field} ~* :${uniqVarName}`, { [uniqVarName]: filter.common?.search });
       }, qb)));
-      // q = q.where(new Brackets(qb => qb
-      //   .where('file.title ~* :search', filter.common)
-      //   .orWhere('file.name ~* :search', filter.common)));
     if (Array.isArray(filter.common?.ids) && filter.common.ids.length)
       q = q.andWhereInIds(filter.common?.ids);
 
@@ -68,11 +62,15 @@ export class TemplateFilesService {
     q = q.skip(options.page.offset)
          .take(options.page.limit);
 
-    // console.log(q.getSql());
     return q.getManyAndCount();
   }
 
-  findOne(id: string, options: FindOneOptions<TemplateFile> = { relations: ['templateType', 'currentFileOfType'] }): Promise<TemplateFile> {
+  findOne(
+    id: string,
+    options: FindOneOptions<TemplateFile> = {
+      relations: ['templateType', 'currentFileOfType']
+    }
+  ): Promise<TemplateFile> {
     return this.repository.findOne(id, options);
   }
 

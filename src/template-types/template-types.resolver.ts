@@ -1,69 +1,63 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
 import { ParseUUIDPipe } from '@nestjs/common';
 
-import { TemplateTypesService } from './template-types.service';
-import { TemplateType } from './entities/template-type.entity';
-
-import { TemplateFilesService } from 'src/template-files/template-files.service';
-import { TemplateFile } from 'src/template-files/entities/template-file.entity';
-
 import * as gqlSchema from 'src/graphql';
 
-import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
-import * as templateFilesTypes from 'src/template-files/dto/find-all.input';
+import { FindOneDto as TemplateFilesFindOneDto } from 'src/template-files/dto/find-one.output';
+import { TemplateFilesService } from 'src/template-files/template-files.service';
+import { PagedOutputDto as TemplateFilesPageDto } from 'src/template-files/dto/page.output';
+import {
+  FilterDto as TemplateFilesFilterDto,
+  RequestOptionsDto as TemplateFilesRequestOptionsDto
+} from 'src/template-files/dto/find-all.input';
 
-// import { CreateTemplateTypeInput } from './dto/create-template-type.input';
-// import { UpdateTemplateTypeInput } from './dto/update-template-type.input';
+import { TemplateTypesService } from './template-types.service';
+import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
+
+import { FindOneDto } from './dto/find-one.output';
+import { PagedOutputDto } from './dto/page.output';
+
+// import { CreateTemplateTypeInput } from './dto/create.input';
+// import { UpdateTemplateTypeInput } from './dto/update.input';
 
 
 @Resolver('TemplateType')
 export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   constructor(
-    private readonly templateTypesService: TemplateTypesService,
+    private readonly service: TemplateTypesService,
     private readonly templateFilesService: TemplateFilesService
   ) {}
 
   @ResolveField('owner')
-  getOwner(@Parent() type: TemplateType): gqlSchema.Owner {
+  getOwner(@Parent() type: Pick<FindOneDto, keyof FindOneDto>): gqlSchema.Owner {
     return type.owner.toUpperCase() as gqlSchema.Owner;
   }
 
   @ResolveField('files')
-  async getFilesOf(@Parent() type: TemplateType): Promise<gqlSchema.TemplateFilesPageResult> {
-    // console.log('getFilesOf', type instanceof TemplateType, type);
-
-    // if (type.shouldJoinFiles &&
-    //     (!type.files || (Array.isArray(type.files) && type.files.length === 0))
-    // ) {
-      const filter = new templateFilesTypes.FilterDto({
-        templateTypes: [type.id]
-      });
-      const options = new templateFilesTypes.RequestOptionsDto({
-        page: {
-          // Use defaults for limit/offset
-          sortBy: {
-            field: 'updatedAt',
-            order: gqlSchema.SortOrder.DESC
-          }
+  async getFilesOf(@Parent() type: Pick<FindOneDto, keyof FindOneDto>): Promise<TemplateFilesPageDto> {
+    const filter = new TemplateFilesFilterDto({
+      templateTypes: [type.id]
+    });
+    const options = new TemplateFilesRequestOptionsDto({
+      page: {
+        // Use defaults for limit/offset
+        sortBy: {
+          field: 'updatedAt',
+          order: gqlSchema.SortOrder.DESC
         }
-      });
-      const [ data, count ] = await this.templateFilesService.findAll(filter, options);
-      return {
-        items: data,
-        total: count
-      };
-    // } else {
-    //   return type.files;
-    // }
+      }
+    });
+    const [ data, count ] = await this.templateFilesService.findAll(filter, options);
+    const response = new TemplateFilesPageDto({
+      items: data,
+      total: count
+    });
+    return response;
   }
 
   @ResolveField('currentFile')
-  getCurrentFileOf(@Parent() type: TemplateType): TemplateFile {
-    // console.log('currentFile', type);
-    return type.currentFile;
-    // if (type.currentFile) {
-    //   return this.templateFilesService.findOne(type.currentFile.id);
-    // }
+  getCurrentFileOf(@Parent() type): TemplateFilesFindOneDto {  // TODO: annotate type: FindOneDto (currently complains on incompatible types)
+    return new TemplateFilesFindOneDto(type.currentFile);
   }
 
   // @Mutation('createTemplateType')
@@ -76,27 +70,19 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   async templateTypes(
     @Args('filter') filter: FilterDto,
     @Args('options') options: RequestOptionsDto
-  ): Promise<gqlSchema.TemplateTypesPageResult>
-  {
-    // console.log('templateTypes', filter, options);
-    const [ data, count ] = await this.templateTypesService.findAll(filter, options);
-
-    // if (options.listFiles) {
-    //   data.forEach(type => type.shouldJoinFiles = true);  // TODO: this is HACK
-    // }
-
-    const response = {
+  ): Promise<PagedOutputDto> {
+    const [ data, count ] = await this.service.findAll(filter, options);
+    const response = new PagedOutputDto({
       items: data,
       total: count
-    };
-    // console.log('templateTypes', data);
+    });
     return response;
   }
 
   // Part of the IQuery, so the name should be the same as the field
   @Query()
-  templateType(@Args('id', ParseUUIDPipe) id: string): Promise<TemplateType> {
-    return this.templateTypesService.findOne(id);
+  async templateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
+    return new FindOneDto(await this.service.findOne(id));
   }
 
   // @Mutation('updateTemplateType')

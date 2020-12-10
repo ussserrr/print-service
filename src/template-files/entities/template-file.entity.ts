@@ -30,9 +30,4 @@ export class TemplateFile {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt!: Date;
-
-
-  get isCurrentFileOfItsType(): boolean {
-    return this.currentFileOfType ? true : false;
-  }
 }

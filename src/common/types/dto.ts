@@ -64,3 +64,10 @@ export class PageInputDto implements gqlSchema.PageInput {
     Object.assign(this, map);
   }
 }
+
+
+// This can be a generic in TS but not in GraphQL... Though, if we use class-transformer it shouldn't be a generic either
+export interface PagedOutput<T> {
+  items: T[];
+  total: number;
+}

@@ -1,27 +1,28 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
 import { ParseUUIDPipe } from '@nestjs/common';
-
-import { TemplateFilesService } from './template-files.service';
-import { TemplateFile } from './entities/template-file.entity';
-
-import { TemplateType } from 'src/template-types/entities/template-type.entity';
 
 import * as gqlSchema from 'src/graphql';
 
+import { FindOneDto as TemplateTypeFindOneDto } from 'src/template-types/dto/find-one.output';
+
+import { TemplateFilesService } from './template-files.service';
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
-// import { CreateTemplateFileInput } from './dto/create-template-file.input';
-// import { UpdateTemplateFileInput } from './dto/update-template-file.input';
+import { FindOneDto } from './dto/find-one.output';
+import { PagedOutputDto } from './dto/page.output';
+
+// import { CreateTemplateFileInput } from './dto/create.input';
+// import { UpdateTemplateFileInput } from './dto/update.input';
 
 
 @Resolver('TemplateFile')
 export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   constructor(
-    private readonly templateFilesService: TemplateFilesService
+    private readonly service: TemplateFilesService
   ) {}
 
   @ResolveField('templateType')
-  getTemplateType(@Parent() file: TemplateFile): TemplateType {
+  getTemplateType(@Parent() file: Pick<FindOneDto, keyof FindOneDto>): TemplateTypeFindOneDto {
     return file.templateType;
   }
 
@@ -35,22 +36,20 @@ export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   async templateFiles(
     @Args('filter') filter: FilterDto,
     @Args('options') options: RequestOptionsDto
-  ): Promise<gqlSchema.TemplateFilesPageResult>
+  ): Promise<PagedOutputDto>
   {
-    // console.log('templateFiles', filter, options);
-    const [ data, count ] = await this.templateFilesService.findAll(filter, options);
-    const response = {
+    const [ data, count ] = await this.service.findAll(filter, options);
+    const response = new PagedOutputDto({
       items: data,
       total: count
-    };
-    // console.log('templateFiles', data);
+    });
     return response;
   }
 
   // Part of the IQuery, so the name should be the same as the field
   @Query()
-  templateFile(@Args('id', ParseUUIDPipe) id: string): Promise<TemplateFile> {
-    return this.templateFilesService.findOne(id);
+  async templateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
+    return new FindOneDto(await this.service.findOne(id));
   }
 
   // @Mutation('updateTemplateFile')

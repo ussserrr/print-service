@@ -6,18 +6,15 @@ import { TemplateType } from './entities/template-type.entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
-import { CreateTemplateTypeInput } from './dto/create-template-type.input';
-import { UpdateTemplateTypeInput } from './dto/update-template-type.input';
+import { CreateTemplateTypeInput } from './dto/create.input';
+import { UpdateTemplateTypeInput } from './dto/update.input';
 
 
 @Injectable()
 export class TemplateTypesService {
   columns: string[] = [];
 
-  constructor(
-    @InjectRepository(TemplateType)
-    private repository: Repository<TemplateType>
-  ) {
+  constructor(@InjectRepository(TemplateType) private repository: Repository<TemplateType>) {
     this.columns = this.repository.metadata.ownColumns.map(column => column.propertyName);
   }
 
@@ -29,8 +26,6 @@ export class TemplateTypesService {
     let q = this.repository.createQueryBuilder('type');
 
     q = q.leftJoinAndSelect('type.currentFile', 'currentFile');
-    // if (options.listFiles)
-    //   q = q.leftJoinAndSelect('type.files', 'file');
 
     if (filter.common?.search)
       q = q.where('type.title ~* :search', { search: filter.common?.search });
@@ -52,11 +47,15 @@ export class TemplateTypesService {
     q = q.skip(options.page.offset)
          .take(options.page.limit);
 
-    // console.log(q.getSql());
     return q.getManyAndCount();
   }
 
-  findOne(id: string, options: FindOneOptions<TemplateType> = { relations: ['currentFile'] }): Promise<TemplateType> {
+  findOne(
+    id: string,
+    options: FindOneOptions<TemplateType> = {
+      relations: ['currentFile']
+    }
+  ): Promise<TemplateType> {
     return this.repository.findOne(id, options);
   }
 
