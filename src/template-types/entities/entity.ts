@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
-import { TemplateFile } from 'src/template-files/entities/template-file.entity';
+import { TemplateFile } from 'src/template-files/entities/entity';
 
 
 export enum Owner {

@@ -4,7 +4,7 @@ import { Brackets, FindOneOptions, Repository } from 'typeorm';
 
 import { Operators } from 'src/common/graphql/types/dto';
 
-import { TemplateFile } from './entities/template-file.entity';
+import { TemplateFile } from './entities/entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 

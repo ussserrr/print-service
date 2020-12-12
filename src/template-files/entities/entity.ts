@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { TemplateType } from 'src/template-types/entities/template-type.entity';
+import { TemplateType } from 'src/template-types/entities/entity';
 
 
 @Entity()

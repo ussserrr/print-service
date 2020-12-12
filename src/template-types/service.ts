@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 
-import { TemplateType } from './entities/template-type.entity';
+import { TemplateType } from './entities/entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 

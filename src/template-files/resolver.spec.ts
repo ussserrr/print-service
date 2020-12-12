@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TemplateFilesResolver } from './template-files.resolver';
-import { TemplateFilesService } from './template-files.service';
+import { TemplateFilesResolver } from './resolver';
+import { TemplateFilesService } from './service';
 
 describe('TemplateFilesResolver', () => {
   let resolver: TemplateFilesResolver;

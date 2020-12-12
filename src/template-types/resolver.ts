@@ -4,14 +4,14 @@ import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import * as gqlSchema from 'src/graphql';
 
 import { FindOneDto as TemplateFilesFindOneDto } from 'src/template-files/dto/find-one.output';
-import { TemplateFilesService } from 'src/template-files/template-files.service';
+import { TemplateFilesService } from 'src/template-files/service';
 import { PagedOutputDto as TemplateFilesPageDto } from 'src/template-files/dto/page.output';
 import {
   FilterDto as TemplateFilesFilterDto,
   RequestOptionsDto as TemplateFilesRequestOptionsDto
 } from 'src/template-files/dto/find-all.input';
 
-import { TemplateTypesService } from './template-types.service';
+import { TemplateTypesService } from './service';
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
 import { FindOneDto } from './dto/find-one.output';
@@ -79,14 +79,14 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
     return response;
   }
 
-  // Part of the IQuery, so the name should be the same as the field
+  // Part of the IQuery, so the method name should be the same as the GraphQL field
   @Query()
   async templateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     const entity = await this.service.findOne(id);
     if (entity) {
       return new FindOneDto(entity);
     } else {
-      throw new NotFoundException();
+      throw new NotFoundException(`TemplateType id=${id}`);
     }
   }
 

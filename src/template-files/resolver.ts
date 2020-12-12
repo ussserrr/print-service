@@ -5,7 +5,7 @@ import * as gqlSchema from 'src/graphql';
 
 import { FindOneDto as TemplateTypeFindOneDto } from 'src/template-types/dto/find-one.output';
 
-import { TemplateFilesService } from './template-files.service';
+import { TemplateFilesService } from './service';
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
 import { FindOneDto } from './dto/find-one.output';
@@ -46,14 +46,14 @@ export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
     return response;
   }
 
-  // Part of the IQuery, so the name should be the same as the field
+  // Part of the IQuery, so the method name should be the same as thefield
   @Query()
   async templateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     const entity = await this.service.findOne(id);
     if (entity) {
       return new FindOneDto(entity);
     } else {
-      throw new NotFoundException();
+      throw new NotFoundException(`TemplateFile id=${id}`);
     }
   }
 

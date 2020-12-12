@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TemplateTypesService } from './template-types.service';
+import { TemplateTypesService } from './service';
 
 describe('TemplateTypesService', () => {
   let service: TemplateTypesService;
