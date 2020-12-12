@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 import { TemplateFile } from 'src/template-files/entities/template-file.entity';
 
@@ -9,27 +9,27 @@ export enum Owner {
 }
 
 @Entity()
-@Unique(['currentFile'])  // TODO: also should belongs to [files]
+@Unique(['currentFile'])  // TODO: currentFile also should belong to [files]
 export class TemplateType {
 
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id: string;
 
   @Column({
     type: 'enum',
     enum: Owner,
     update: false
   })
-  owner!: Owner;
+  owner: Owner;
 
   @Column()
-  title!: string;
+  title: string;
 
   @Column({ default: true })
-  active!: boolean;
+  active: boolean;
 
   @Column({ update: false })
-  folder!: string;
+  folder: string;
 
   @OneToOne(() => TemplateFile, currentFile => currentFile.currentFileOfType, {
     cascade: true,
@@ -39,8 +39,6 @@ export class TemplateType {
   @JoinColumn()
   currentFile?: TemplateFile;
 
-
-  // shouldJoinFiles = false
 
   // @OneToMany(() => TemplateFile, file => file.templateType)
   // files?: TemplateFile[];

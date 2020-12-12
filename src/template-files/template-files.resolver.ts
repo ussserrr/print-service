@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
-import { ParseUUIDPipe } from '@nestjs/common';
+import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 
@@ -22,7 +22,7 @@ export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   ) {}
 
   @ResolveField('templateType')
-  getTemplateType(@Parent() file: Pick<FindOneDto, keyof FindOneDto>): TemplateTypeFindOneDto {
+  getTemplateType(@Parent() file: FindOneDto): TemplateTypeFindOneDto {
     return file.templateType;
   }
 
@@ -49,7 +49,12 @@ export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   // Part of the IQuery, so the name should be the same as the field
   @Query()
   async templateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    return new FindOneDto(await this.service.findOne(id));
+    const entity = await this.service.findOne(id);
+    if (entity) {
+      return new FindOneDto(entity);
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   // @Mutation('updateTemplateFile')

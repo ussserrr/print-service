@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
-import { ParseUUIDPipe } from '@nestjs/common';
+import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 
@@ -33,7 +33,7 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
     return type.owner.toUpperCase() as gqlSchema.Owner;
   }
 
-  @ResolveField('files')
+  @ResolveField('pageOfFiles')
   async getFilesOf(@Parent() type: Pick<FindOneDto, keyof FindOneDto>): Promise<TemplateFilesPageDto> {
     const filter = new TemplateFilesFilterDto({
       templateTypes: [type.id]
@@ -56,7 +56,7 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   }
 
   @ResolveField('currentFile')
-  getCurrentFileOf(@Parent() type): TemplateFilesFindOneDto {  // TODO: annotate type: FindOneDto (currently complains on incompatible types)
+  getCurrentFileOf(@Parent() type: FindOneDto): TemplateFilesFindOneDto {  // TODO: annotate type: FindOneDto (currently complains on incompatible types)
     return new TemplateFilesFindOneDto(type.currentFile);
   }
 
@@ -82,7 +82,12 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   // Part of the IQuery, so the name should be the same as the field
   @Query()
   async templateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    return new FindOneDto(await this.service.findOne(id));
+    const entity = await this.service.findOne(id);
+    if (entity) {
+      return new FindOneDto(entity);
+    } else {
+      throw new NotFoundException();
+    }
   }
 
   // @Mutation('updateTemplateType')

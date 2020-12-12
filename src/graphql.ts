@@ -93,7 +93,7 @@ export interface TemplateType {
     owner: Owner;
     title: string;
     active: boolean;
-    files?: TemplateFilesPageResult;
+    pageOfFiles?: TemplateFilesPageResult;
     currentFile?: TemplateFile;
 }
 

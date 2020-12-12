@@ -9,18 +9,18 @@ import { TemplateType } from '../entities/template-type.entity';
 
 
 export class FindOneDto implements gqlSchema.TemplateType {
-  @Expose() id!: string;
-  @Expose() title!: string;
-  @Expose() owner!: gqlSchema.Owner;
-  @Expose() active!: boolean;
+  @Expose() id: string;
+  @Expose() title: string;
+  @Expose() owner: gqlSchema.Owner;
+  @Expose() active: boolean;
 
   @Expose()
   @Type(() => TemplateFileFindOneDto)
   currentFile?: TemplateFileFindOneDto;
 
-  files?: TemplateFilesPageDto;
+  pageOfFiles?: TemplateFilesPageDto;
 
-  constructor(other?: Partial<TemplateType>) {
-    Object.assign(this, other);
+  constructor(entity?: Pick<FindOneDto, keyof FindOneDto>) {
+    Object.assign(this, entity);
   }
 }

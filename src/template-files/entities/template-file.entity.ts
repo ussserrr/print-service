@@ -6,16 +6,16 @@ import { TemplateType } from 'src/template-types/entities/template-type.entity';
 @Entity()
 export class TemplateFile {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id: string;
 
   @ManyToOne(() => TemplateType)
-  templateType!: TemplateType;
+  templateType: TemplateType;
 
   @Column()
-  name!: string;
+  name: string;
 
   @Column()
-  mimeType!: string;
+  mimeType: string;
 
   @Column({ nullable: true })  // nullable false by default
   title: string;
@@ -26,8 +26,8 @@ export class TemplateFile {
   currentFileOfType?: TemplateType;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createdAt!: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt!: Date;
+  updatedAt: Date;
 }

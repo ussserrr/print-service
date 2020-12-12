@@ -31,21 +31,21 @@ export class TemplateTypesService {
       q = q.where('type.title ~* :search', { search: filter.common?.search });
     if (typeof filter.active === 'boolean')
       q = q.andWhere('type.active = :active', { active: filter.active });
-    if (Array.isArray(filter.common?.ids) && filter.common.ids.length)
+    if (Array.isArray(filter.common?.ids) && filter.common?.ids.length)
       q = q.andWhereInIds(filter.common?.ids);
 
     if (Array.isArray(filter.owners) && filter.owners.length)
       q = q.andWhere('type.owner IN (:...owners)', { owners: filter.owners.map(o => o.toLowerCase()) });  // TODO: implementation details
 
-    if (options.page.sortBy && Object.keys(options.page.sortBy).length) {
-      if (this.columns.some(f => options.page.sortBy.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
+    if (options.page?.sortBy && Object.keys(options.page?.sortBy).length) {
+      if (this.columns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
         q = q.orderBy(`type.${options.page.sortBy.field}`, options.page.sortBy.order);
       } else {
         throw new Error(`sortBy: no such field '${options.page.sortBy.field}'`);
       }
     }
-    q = q.skip(options.page.offset)
-         .take(options.page.limit);
+    q = q.skip(options.page?.offset)
+         .take(options.page?.limit);
 
     return q.getManyAndCount();
   }
@@ -55,7 +55,7 @@ export class TemplateTypesService {
     options: FindOneOptions<TemplateType> = {
       relations: ['currentFile']
     }
-  ): Promise<TemplateType> {
+  ): Promise<TemplateType | undefined> {
     return this.repository.findOne(id, options);
   }
 

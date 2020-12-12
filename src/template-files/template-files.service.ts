@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, FindOneOptions, Repository } from 'typeorm';
 
-import { Operators } from 'src/common/types/dto';
+import { Operators } from 'src/common/graphql/types/dto';
 
 import { TemplateFile } from './entities/template-file.entity';
 
@@ -35,7 +35,7 @@ export class TemplateFilesService {
         const uniqVarName = field + 'Search';
         return qb.orWhere(`file.${field} ~* :${uniqVarName}`, { [uniqVarName]: filter.common?.search });
       }, qb)));
-    if (Array.isArray(filter.common?.ids) && filter.common.ids.length)
+    if (Array.isArray(filter.common?.ids) && filter.common?.ids.length)
       q = q.andWhereInIds(filter.common?.ids);
 
     if (Array.isArray(filter.templateTypes) && filter.templateTypes.length)
@@ -52,15 +52,15 @@ export class TemplateFilesService {
       }
     }
 
-    if (options.page.sortBy) {
-      if (this.columns.some(f => options.page.sortBy.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
+    if (options.page?.sortBy) {
+      if (this.columns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
         q = q.orderBy(`file.${options.page.sortBy.field}`, options.page.sortBy.order);
       } else {
         throw new Error(`sortBy: no such field '${options.page.sortBy.field}'`);
       }
     }
-    q = q.skip(options.page.offset)
-         .take(options.page.limit);
+    q = q.skip(options.page?.offset)
+         .take(options.page?.limit);
 
     return q.getManyAndCount();
   }
@@ -70,7 +70,7 @@ export class TemplateFilesService {
     options: FindOneOptions<TemplateFile> = {
       relations: ['templateType', 'currentFileOfType']
     }
-  ): Promise<TemplateFile> {
+  ): Promise<TemplateFile | undefined> {
     return this.repository.findOne(id, options);
   }
 

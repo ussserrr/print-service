@@ -8,7 +8,7 @@ type TemplateType {
   owner: Owner!
   title: String!
   active: Boolean!
-  files: TemplateFilesPageResult
+  pageOfFiles: TemplateFilesPageResult
   currentFile: TemplateFile
 }
 

@@ -1,5 +1,5 @@
 import * as gqlSchema from 'src/graphql';
-import * as commonTypes from 'src/common/types/dto'
+import * as commonTypes from 'src/common/graphql/types/dto'
 import { ArrayNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -22,12 +22,12 @@ export class FilterDto implements gqlSchema.TemplateFilesFilter {
   @Type(() => commonTypes.DateFilterDto)
   updatedAt?: commonTypes.DateFilterDto[];
 
-  constructor(map?: Pick<FilterDto, keyof FilterDto>) {
-    if (map?.common && !(map.common instanceof commonTypes.CommonFilterDto)) {
-      this.common = new commonTypes.CommonFilterDto(map.common);
-      delete map.common;
+  constructor(mapping?: Pick<FilterDto, keyof FilterDto>) {
+    if (mapping?.common && !(mapping.common instanceof commonTypes.CommonFilterDto)) {
+      this.common = new commonTypes.CommonFilterDto(mapping.common);
+      delete mapping.common;
     }
-    Object.assign(this, map);
+    Object.assign(this, mapping);
   }
 }
 

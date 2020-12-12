@@ -19,31 +19,31 @@ export class CommonFilterDto implements gqlSchema.CommonFilter {
 
   @MinLength(3) search?: string;
 
-  constructor(map?: Pick<CommonFilterDto, keyof CommonFilterDto>) {
-    Object.assign(this, map);
+  constructor(mapping?: Pick<CommonFilterDto, keyof CommonFilterDto>) {
+    Object.assign(this, mapping);
   }
 }
 
 
 export class DateFilterDto implements gqlSchema.DateFilter {
-  operator!: gqlSchema.Operator;
+  operator: gqlSchema.Operator;
 
   @IsDate()
   @Type(() => Date)
-  value!: Date;
+  value: Date;
 
-  constructor(map: Pick<DateFilterDto, keyof DateFilterDto>) {
-    Object.assign(this, map);
+  constructor(mapping: Pick<DateFilterDto, keyof DateFilterDto>) {
+    Object.assign(this, mapping);
   }
 }
 
 
 export class SortByDto implements gqlSchema.SortBy {
-  @IsNotEmpty() field!: string;
-  order!: gqlSchema.SortOrder;
+  @IsNotEmpty() field: string;
+  order: gqlSchema.SortOrder;
 
-  constructor(map: Pick<SortByDto, keyof SortByDto>) {
-    Object.assign(this, map);
+  constructor(mapping: Pick<SortByDto, keyof SortByDto>) {
+    Object.assign(this, mapping);
   }
 }
 
@@ -56,12 +56,12 @@ export class PageInputDto implements gqlSchema.PageInput {
   @Type(() => SortByDto)
   sortBy?: SortByDto;
 
-  constructor(map?: Pick<PageInputDto, keyof PageInputDto>) {
-    if (map?.sortBy && !(map.sortBy instanceof SortByDto)) {
-      this.sortBy = new SortByDto(map.sortBy);
-      delete map.sortBy;
+  constructor(mapping?: Pick<PageInputDto, keyof PageInputDto>) {
+    if (mapping?.sortBy && !(mapping.sortBy instanceof SortByDto)) {
+      this.sortBy = new SortByDto(mapping.sortBy);
+      delete mapping.sortBy;
     }
-    Object.assign(this, map);
+    Object.assign(this, mapping);
   }
 }
 

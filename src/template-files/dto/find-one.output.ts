@@ -8,21 +8,21 @@ import { TemplateFile } from '../entities/template-file.entity';
 
 
 export class FindOneDto implements gqlSchema.TemplateFile {
-  @Expose() id!: string;
-  @Expose() title!: string;
-  @Expose() mimeType!: string;
-  @Expose() createdAt!: Date;
-  @Expose() updatedAt!: Date;
+  @Expose() id: string;
+  @Expose() title: string;
+  @Expose() mimeType: string;
+  @Expose() createdAt: Date;
+  @Expose() updatedAt: Date;
 
   @Expose()
   @Type(() => TemplateTypeFindOneDto)
-  templateType!: TemplateTypeFindOneDto;
+  templateType: TemplateTypeFindOneDto;
 
   @Expose({ name: 'isCurrentFileOfItsType' })
   @Transform(value => value ? true : false)
   currentFileOfType?: TemplateTypeFindOneDto;
 
-  constructor(other?: Partial<TemplateFile>) {
-    Object.assign(this, other);
+  constructor(entity?: Pick<FindOneDto, keyof FindOneDto>) {
+    Object.assign(this, entity);
   }
 }
