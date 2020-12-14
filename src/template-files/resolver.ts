@@ -3,13 +3,14 @@ import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 
-import { FindOneDto as TemplateTypeFindOneDto } from 'src/template-types/dto/find-one.output';
+import { FindOneDto as TemplateTypesFindOneDto } from 'src/template-types/dto/find-one.output';
 
 import { TemplateFilesService } from './service';
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
 import { FindOneDto } from './dto/find-one.output';
 import { PagedOutputDto } from './dto/page.output';
+import { TemplateTypesService } from 'src/template-types/service';
 
 // import { CreateTemplateFileInput } from './dto/create.input';
 // import { UpdateTemplateFileInput } from './dto/update.input';
@@ -18,12 +19,16 @@ import { PagedOutputDto } from './dto/page.output';
 @Resolver('TemplateFile')
 export class TemplateFilesResolver implements Partial<gqlSchema.IQuery> {
   constructor(
-    private readonly service: TemplateFilesService
+    private readonly service: TemplateFilesService,
+    private readonly templateTypesService: TemplateTypesService
   ) {}
 
   @ResolveField('templateType')
-  getTemplateType(@Parent() file: FindOneDto): TemplateTypeFindOneDto {
-    return file.templateType;
+  async getTemplateType(@Parent() file: FindOneDto): Promise<TemplateTypesFindOneDto | undefined> {
+    const type = await this.templateTypesService.findOne(file.templateType.id);
+    if (type) {
+      return new TemplateTypesFindOneDto(type);
+    }
   }
 
   // @Mutation('createTemplateFile')

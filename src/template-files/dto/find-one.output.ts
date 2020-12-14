@@ -4,8 +4,6 @@ import * as gqlSchema from 'src/graphql';
 
 import { FindOneDto as TemplateTypeFindOneDto } from 'src/template-types/dto/find-one.output';
 
-import { TemplateFile } from '../entities/entity';
-
 
 export class FindOneDto implements gqlSchema.TemplateFile {
   @Expose() id: string;

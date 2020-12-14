@@ -1,11 +1,9 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 import * as gqlSchema from 'src/graphql';
 
 import { FindOneDto as TemplateFileFindOneDto } from 'src/template-files/dto/find-one.output';
 import { PagedOutputDto as TemplateFilesPageDto } from 'src/template-files/dto/page.output';
-
-import { TemplateType } from '../entities/entity';
 
 
 export class FindOneDto implements gqlSchema.TemplateType {

@@ -29,12 +29,12 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   ) {}
 
   @ResolveField('owner')
-  getOwner(@Parent() type: Pick<FindOneDto, keyof FindOneDto>): gqlSchema.Owner {
+  getOwner(@Parent() type: FindOneDto): gqlSchema.Owner {
     return type.owner.toUpperCase() as gqlSchema.Owner;
   }
 
   @ResolveField('pageOfFiles')
-  async getFilesOf(@Parent() type: Pick<FindOneDto, keyof FindOneDto>): Promise<TemplateFilesPageDto> {
+  async getFilesOf(@Parent() type: FindOneDto): Promise<TemplateFilesPageDto> {
     const filter = new TemplateFilesFilterDto({
       templateTypes: [type.id]
     });
@@ -56,8 +56,13 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   }
 
   @ResolveField('currentFile')
-  getCurrentFileOf(@Parent() type: FindOneDto): TemplateFilesFindOneDto {  // TODO: annotate type: FindOneDto (currently complains on incompatible types)
-    return new TemplateFilesFindOneDto(type.currentFile);
+  async getCurrentFileOf(@Parent() type: FindOneDto): Promise<TemplateFilesFindOneDto | undefined> {
+    if (type.currentFile?.id) {
+      const file = await this.templateFilesService.findOne(type.currentFile.id);
+      if (file) {
+        return new TemplateFilesFindOneDto(file);
+      }
+    }
   }
 
   // @Mutation('createTemplateType')
