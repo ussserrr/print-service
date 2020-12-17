@@ -27,24 +27,42 @@ const typeormConfig: TypeOrmModuleOptions = {
   entities: [TemplateFile, TemplateType]
 };
 
+
 const graphqlConfig: GqlModuleOptions = {
   formatError: (error: GraphQLError) => {
     const errorType =
       error.extensions?.exception?.response?.error ||
       'Error';
-    const errorMessage =
-      error.message ||
-      error.extensions?.exception?.message ||
-      error.extensions?.exception?.response?.message ||
-      'unknown error';
+
+    let errorMessage = 'unknown error';
+    if (Array.isArray(error.extensions?.exception?.response?.message)) {
+      errorMessage = error.extensions?.exception?.response?.message.join('; ');
+    } else if (error.extensions?.exception?.response?.message) {
+      errorMessage = error.extensions?.exception?.response?.message;
+    } else if (error.extensions?.exception?.message) {
+      errorMessage = error.extensions?.exception?.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
     const formattedError: GraphQLFormattedError = {
       message: `${errorType}: ${errorMessage}`
     };
     return formattedError;
   },
   typePaths: ['./src/**/*.graphql'],
+
+  /**
+   * WARNING: make sure this config is matching the one from the typings generation
+   * standalone script otherwise you can meet some unexpected behavior
+   */
   definitions: {
-    path: join(process.cwd(), 'src/graphql.ts')  // runtime-generated file
+    path: join(process.cwd(), 'src/graphql.ts'),  // runtime-generated file
+    defaultScalarType: 'unknown',
+    customScalarTypeMapping: {
+      'Upload': 'FileUpload'
+    },
+    additionalHeader: 'import { FileUpload } from "graphql-upload";'
   }
 };
 

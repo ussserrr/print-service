@@ -55,8 +55,10 @@ export class TemplateTypesService {
     options: FindOneOptions<TemplateType> = {
       relations: ['currentFile']
     }
-  ): Promise<TemplateType | undefined> {
-    return this.repository.findOne(id, options);
+  // ): Promise<TemplateType | undefined> {
+  ): Promise<TemplateType>
+  {
+    return this.repository.findOneOrFail(id, options);
   }
 
   update(id: string, updateTemplateTypeInput: UpdateTemplateTypeInput) {

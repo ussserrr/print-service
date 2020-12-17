@@ -15,7 +15,14 @@ import { TemplateTypesResolver } from './resolver';
     TypeOrmModule.forFeature([TemplateType]),
     forwardRef(() => TemplateFilesModule)
   ],
-  providers: [TemplateTypesResolver, TemplateTypesService, TemplateFilesService],
-  exports: [TemplateTypesService, TypeOrmModule]
+  providers: [
+    TemplateTypesResolver,
+    TemplateTypesService,
+    TemplateFilesService
+  ],
+  exports: [
+    TemplateTypesService,
+    TypeOrmModule
+  ]
 })
 export class TemplateTypesModule {}

@@ -11,7 +11,7 @@ export class TemplateFile {
   @ManyToOne(() => TemplateType)
   templateType: TemplateType;
 
-  @Column()
+  @Column({ update: false })
   name: string;
 
   @Column()

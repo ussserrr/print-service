@@ -1,7 +1,8 @@
-import * as gqlSchema from 'src/graphql';
-import * as commonTypes from 'src/common/graphql/types/dto'
 import { ArrayNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+
+import * as commonTypes from 'src/common/graphql/types/dto'
+import * as gqlSchema from 'src/graphql';
 
 
 export class FilterDto implements gqlSchema.TemplateFilesFilter {

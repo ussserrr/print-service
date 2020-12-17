@@ -1,4 +1,5 @@
 scalar Date
+scalar Upload
 
 type TemplateFile {
   id: ID!
@@ -10,17 +11,16 @@ type TemplateFile {
   updatedAt: Date!
 }
 
-# input CreateTemplateFileInput {
-#   templateType: TemplateType!  # make it parametrical to use the Type in CreateTemplateType
-#   currentFileOfType: TemplateType
-#   # file: File!
-# }
+input CreateTemplateFileInput {
+  templateTypeId: ID!
+  title: String
+  makeCurrentFileOfItsType: Boolean
+}
 
-# input UpdateTemplateFileInput {
-#   id: ID!
-#   templateType: TemplateType
-#   currentFileOfType: TemplateType
-# }
+input UpdateTemplateFileInput {
+  title: String
+  makeCurrentFileOfItsType: Boolean
+}
 
 input TemplateFilesFilter {
   common: CommonFilter = {}
@@ -46,8 +46,14 @@ type Query {
   templateFile(id: ID!): TemplateFile
 }
 
-# type Mutation {
-#   createTemplateFile(createTemplateFileInput: CreateTemplateFileInput!): TemplateFile!
-#   updateTemplateFile(updateTemplateFileInput: UpdateTemplateFileInput!): TemplateFile!
-#   removeTemplateFile(id: ID!): TemplateFile
-# }
+type Mutation {
+  createTemplateFile(
+    file: Upload!
+    data: CreateTemplateFileInput!
+  ): TemplateFile!
+  updateTemplateFile(
+    id: ID!
+    data: UpdateTemplateFileInput!
+  ): TemplateFile!
+  removeTemplateFile(id: ID!): TemplateFile!
+}

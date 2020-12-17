@@ -1,6 +1,8 @@
-import { CreateTemplateFileInput } from './create.input';
-import { PartialType } from '@nestjs/graphql';
+import { IsNotEmpty } from 'class-validator';
 
-export class UpdateTemplateFileInput extends PartialType(CreateTemplateFileInput) {
-  id: string;
+import * as gqlSchema from 'src/graphql';
+
+export class UpdateDto implements gqlSchema.UpdateTemplateFileInput {
+  @IsNotEmpty() title?: string;
+  makeCurrentFileOfItsType?: boolean;
 }

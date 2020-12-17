@@ -6,6 +6,9 @@
 
 /* tslint:disable */
 /* eslint-disable */
+
+import { FileUpload } from "graphql-upload";
+
 export enum Operator {
     LT = "LT",
     LE = "LE",
@@ -42,6 +45,17 @@ export interface PageInput {
     limit?: number;
     offset?: number;
     sortBy?: SortBy;
+}
+
+export interface CreateTemplateFileInput {
+    templateTypeId: string;
+    title?: string;
+    makeCurrentFileOfItsType?: boolean;
+}
+
+export interface UpdateTemplateFileInput {
+    title?: string;
+    makeCurrentFileOfItsType?: boolean;
 }
 
 export interface TemplateFilesFilter {
@@ -88,6 +102,12 @@ export interface IQuery {
     templateType(id: string): TemplateType | Promise<TemplateType>;
 }
 
+export interface IMutation {
+    createTemplateFile(file: Upload, data: CreateTemplateFileInput): TemplateFile | Promise<TemplateFile>;
+    updateTemplateFile(id: string, data: UpdateTemplateFileInput): TemplateFile | Promise<TemplateFile>;
+    removeTemplateFile(id: string): TemplateFile | Promise<TemplateFile>;
+}
+
 export interface TemplateType {
     id: string;
     owner: Owner;
@@ -101,3 +121,5 @@ export interface TemplateTypesPageResult {
     items: TemplateType[];
     total: number;
 }
+
+export type Upload = FileUpload;
