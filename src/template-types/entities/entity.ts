@@ -25,11 +25,11 @@ export class TemplateType {
   @Column()
   title: string;
 
+  @Column({ update: false })
+  name: string;
+
   @Column({ default: true })
   active: boolean;
-
-  @Column({ update: false })
-  folder: string;
 
   @OneToOne(() => TemplateFile, currentFile => currentFile.currentFileOfType, {
     cascade: true,

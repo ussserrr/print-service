@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, FindOneOptions, Repository } from 'typeorm';
 import { FileUpload } from 'graphql-upload';
+import { ConfigType } from '@nestjs/config';
+
+import appConfig from 'src/config/app.config';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -25,29 +28,26 @@ import { UpdateDto } from './dto/update.input';
 @Injectable()
 export class TemplateFilesService {
 
-  columns: string[] = [];
+  entityColumns: string[] = [];
 
   constructor(
+    @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>,
     @InjectRepository(TemplateFile) private repository: Repository<TemplateFile>,
     private readonly templateTypesService: TemplateTypesService
   ) {
-    this.columns = this.repository.metadata.ownColumns.map(column => column.propertyName);
+    this.entityColumns = this.repository.metadata.ownColumns.map(column => column.propertyName);
   }
 
 
   async create(file: FileUpload, data: CreateDto): Promise<TemplateFile> {
-    // this.repository.insert({
-    //   title: data.title
-    // });
-
     const type = await this.templateTypesService.findOne(data.templateTypeId, { relations: [] });
 
+    const filePath = path.join(this.config.storageRootPath, type.owner, type.name);
+    // const filePath = 'storage';
     const fileName = uuidv4() + path.extname(file.filename);
-    // TODO: const filePath = path.join(ROOT_PATH, type.owner, type.folder, fileName);
-    const dir = 'upload';
     await new Promise((resolve, reject) =>
       file.createReadStream()
-        .pipe(fs.createWriteStream(path.join(dir, fileName)))
+        .pipe(fs.createWriteStream(path.join(filePath, fileName)))
         .on('finish', resolve)
         .on('error', reject)
     );
@@ -64,6 +64,7 @@ export class TemplateFilesService {
     const created = await this.repository.save(entity);
     return created;
   }
+
 
   findAll(filter: FilterDto, options: RequestOptionsDto): Promise<[TemplateFile[], number]> {
     let q = this.repository.createQueryBuilder('file');
@@ -93,7 +94,7 @@ export class TemplateFilesService {
     }
 
     if (options.page?.sortBy) {
-      if (this.columns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
+      if (this.entityColumns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
         q = q.orderBy(`file.${options.page.sortBy.field}`, options.page.sortBy.order);
       } else {
         throw new Error(`sortBy: no such field '${options.page.sortBy.field}'`);
@@ -138,7 +139,7 @@ export class TemplateFilesService {
     // TODO: what if this is a current file of some type?
     const removed = await this.findOne(id);
 
-    // TODO: const filePath = path.join(ROOT_PATH, removed.templateType.owner, removed.templateType.folder, removed.name);
+    // TODO: const filePath = path.join(ROOT_PATH, removed.templateType.owner, removed.templateType.name, removed.name);
     const filePath = path.join('upload', removed.name);
     fs.unlinkSync(filePath);
 

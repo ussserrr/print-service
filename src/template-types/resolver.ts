@@ -58,10 +58,7 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   @ResolveField('currentFile')
   async getCurrentFileOf(@Parent() type: FindOneDto): Promise<TemplateFilesFindOneDto | undefined> {
     if (type.currentFile?.id) {
-      const file = await this.templateFilesService.findOne(type.currentFile.id);
-      if (file) {
-        return new TemplateFilesFindOneDto(file);
-      }
+      return new TemplateFilesFindOneDto(await this.templateFilesService.findOne(type.currentFile.id));
     }
   }
 
@@ -87,12 +84,7 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
   // Part of the IQuery, so the method name should be the same as the GraphQL field
   @Query()
   async templateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    const entity = await this.service.findOne(id);
-    if (entity) {
-      return new FindOneDto(entity);
-    } else {
-      throw new NotFoundException(`TemplateType id=${id}`);
-    }
+    return new FindOneDto(await this.service.findOne(id));
   }
 
   // @Mutation('updateTemplateType')

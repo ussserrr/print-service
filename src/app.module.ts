@@ -1,31 +1,27 @@
-import { join } from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import { Module } from '@nestjs/common';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { Inject, Module, OnModuleInit } from '@nestjs/common';
+
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
+
+import { ConfigModule, ConfigType } from '@nestjs/config';
+
+import appConfig from './config/app.config';
+import dbConfig from './config/database.config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { TemplateFilesModule } from './template-files/module';
-import { TemplateTypesModule } from './template-types/module';
-
-import { TemplateFile } from './template-files/entities/entity';
-import { TemplateType } from './template-types/entities/entity';
-
 import { TemplateFilesService } from './template-files/service';
+
+import { Owner } from './template-types/entities/entity';
+import { TemplateTypesModule } from './template-types/module';
 import { TemplateTypesService } from './template-types/service';
-
-
-const typeormConfig: TypeOrmModuleOptions = {
-  type: 'postgres',
-  host: 'localhost',
-  username: 'chufyrev',
-  database: 'chufyrev',
-  synchronize: true,
-  entities: [TemplateFile, TemplateType]
-};
 
 
 const graphqlConfig: GqlModuleOptions = {
@@ -57,7 +53,7 @@ const graphqlConfig: GqlModuleOptions = {
    * standalone script otherwise you can meet some unexpected behavior
    */
   definitions: {
-    path: join(process.cwd(), 'src/graphql.ts'),  // runtime-generated file
+    path: path.join(process.cwd(), 'src/graphql.ts'),  // runtime-generated file
     defaultScalarType: 'unknown',
     customScalarTypeMapping: {
       'Upload': 'FileUpload'
@@ -69,7 +65,15 @@ const graphqlConfig: GqlModuleOptions = {
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(typeormConfig),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [appConfig]
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule.forFeature(dbConfig)],
+      inject: [dbConfig.KEY],
+      useFactory: (config: ConfigType<typeof dbConfig>) => config
+    }),
     GraphQLModule.forRoot(graphqlConfig),
     TemplateFilesModule,
     TemplateTypesModule
@@ -87,4 +91,23 @@ const graphqlConfig: GqlModuleOptions = {
     TemplateFilesService
   ]
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(
+    @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>,
+  ) {}
+
+  onModuleInit() {
+    try {
+      fs.accessSync(this.config.storageRootPath, fs.constants.F_OK);
+    } catch {
+      console.info(`app.config.storageRootPath path (${this.config.storageRootPath}) doesn't exist, creating it and its subfolders...`);
+      fs.mkdirSync(this.config.storageRootPath, { recursive: true });
+      // TODO: move this to template-types service
+      for (const owner of Object.values(Owner)) {
+        fs.mkdirSync(path.join(this.config.storageRootPath, owner));
+      }
+    }
+    // Check we have necessary file-system permissions (read/write)
+    fs.accessSync(this.config.storageRootPath, fs.constants.R_OK | fs.constants.W_OK);
+  }
+}

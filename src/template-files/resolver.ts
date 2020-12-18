@@ -27,11 +27,8 @@ export class TemplateFilesResolver implements
   ) {}
 
   @ResolveField('templateType')
-  async getTemplateType(@Parent() file: FindOneDto): Promise<TemplateTypesFindOneDto | undefined> {
-    const type = await this.templateTypesService.findOne(file.templateType.id);
-    if (type) {
-      return new TemplateTypesFindOneDto(type);
-    }
+  async getTemplateType(@Parent() file: FindOneDto): Promise<TemplateTypesFindOneDto> {
+    return new TemplateTypesFindOneDto(await this.templateTypesService.findOne(file.templateType.id));
   }
 
   // gqlSchema.IMutation
@@ -67,12 +64,7 @@ export class TemplateFilesResolver implements
   // gqlSchema.IQuery
   @Query()
   async templateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    const entity = await this.service.findOne(id);
-    if (entity) {
-      return new FindOneDto(entity);
-    } else {
-      throw new NotFoundException(`TemplateFile id=${id}`);
-    }
+    return new FindOneDto(await this.service.findOne(id));
   }
 
   // gqlSchema.IMutation
