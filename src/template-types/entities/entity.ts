@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 import { TemplateFile } from 'src/template-files/entities/entity';
 
@@ -8,8 +8,9 @@ export enum Owner {
   CAR = 'car'
 }
 
+
 @Entity()
-@Unique(['currentFile'])  // TODO: currentFile also should belong to [files]
+@Unique(['currentFile', 'name'])  // TODO: currentFile also should belong to [files]
 export class TemplateType {
 
   @PrimaryGeneratedColumn('uuid')
@@ -39,7 +40,6 @@ export class TemplateType {
   @JoinColumn()
   currentFile?: TemplateFile;
 
-
-  // @OneToMany(() => TemplateFile, file => file.templateType)
-  // files?: TemplateFile[];
+  @OneToMany(() => TemplateFile, file => file.templateType)
+  files: TemplateFile[];
 }

@@ -69,6 +69,18 @@ export interface TemplateFilesRequestOptions {
     page?: PageInput;
 }
 
+export interface CreateTemplateTypeInput {
+    owner: Owner;
+    title: string;
+    active?: boolean;
+}
+
+export interface UpdateTemplateTypeInput {
+    title?: string;
+    active?: boolean;
+    currentFileId?: string;
+}
+
 export interface TemplateTypesFilter {
     common?: CommonFilter;
     active?: boolean;
@@ -106,6 +118,9 @@ export interface IMutation {
     createTemplateFile(file: Upload, data: CreateTemplateFileInput): TemplateFile | Promise<TemplateFile>;
     updateTemplateFile(id: string, data: UpdateTemplateFileInput): TemplateFile | Promise<TemplateFile>;
     removeTemplateFile(id: string): TemplateFile | Promise<TemplateFile>;
+    createTemplateType(data: CreateTemplateTypeInput): TemplateType | Promise<TemplateType>;
+    updateTemplateType(id: string, data: UpdateTemplateTypeInput): TemplateType | Promise<TemplateType>;
+    removeTemplateType(id: string): TemplateType | Promise<TemplateType>;
 }
 
 export interface TemplateType {

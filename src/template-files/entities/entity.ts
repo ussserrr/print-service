@@ -8,7 +8,7 @@ export class TemplateFile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => TemplateType)
+  @ManyToOne(() => TemplateType, templateType => templateType.files)
   templateType: TemplateType;
 
   @Column({ update: false })

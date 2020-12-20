@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
-import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { ParseUUIDPipe } from '@nestjs/common';
 import { FileUpload } from 'graphql-upload';
 
 import * as gqlSchema from 'src/graphql';

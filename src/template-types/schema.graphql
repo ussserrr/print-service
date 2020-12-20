@@ -12,18 +12,17 @@ type TemplateType {
   currentFile: TemplateFile
 }
 
-# input CreateTemplateTypeInput {
-#   title: String!
-#   active: Boolean
-# }
+input CreateTemplateTypeInput {
+  owner: Owner!
+  title: String!
+  active: Boolean
+}
 
-# input UpdateTemplateTypeInput {
-#   id: ID!
-#   title: String
-#   active: Boolean
-#   files: [TemplateFile!]
-#   currentFile: TemplateFile
-# }
+input UpdateTemplateTypeInput {
+  title: String
+  active: Boolean
+  currentFileId: ID
+}
 
 input TemplateTypesFilter {
   common: CommonFilter = {}
@@ -51,8 +50,11 @@ type Query {
   templateType(id: ID!): TemplateType
 }
 
-# type Mutation {
-#   createTemplateType(createTemplateTypeInput: CreateTemplateTypeInput!): TemplateType!
-#   updateTemplateType(updateTemplateTypeInput: UpdateTemplateTypeInput!): TemplateType!
-#   removeTemplateType(id: ID!): TemplateType
-# }
+type Mutation {
+  createTemplateType(data: CreateTemplateTypeInput!): TemplateType!
+  updateTemplateType(
+    id: ID!
+    data: UpdateTemplateTypeInput!
+  ): TemplateType!
+  removeTemplateType(id: ID!): TemplateType!
+}

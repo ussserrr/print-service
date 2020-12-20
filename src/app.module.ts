@@ -46,14 +46,14 @@ const graphqlConfig: GqlModuleOptions = {
     };
     return formattedError;
   },
-  typePaths: ['./src/**/*.graphql'],
+  typePaths: ['./**/*.graphql'],
 
   /**
    * WARNING: make sure this config is matching the one from the typings generation
    * standalone script otherwise you can meet some unexpected behavior
    */
   definitions: {
-    path: path.join(process.cwd(), 'src/graphql.ts'),  // runtime-generated file
+    path: path.join(process.cwd(), 'src', 'graphql.ts'),  // runtime-generated file
     defaultScalarType: 'unknown',
     customScalarTypeMapping: {
       'Upload': 'FileUpload'
@@ -100,12 +100,8 @@ export class AppModule implements OnModuleInit {
     try {
       fs.accessSync(this.config.storageRootPath, fs.constants.F_OK);
     } catch {
-      console.info(`app.config.storageRootPath path (${this.config.storageRootPath}) doesn't exist, creating it and its subfolders...`);
+      console.info(`app.config.storageRootPath path (${this.config.storageRootPath}) doesn't exist, creating one...`);
       fs.mkdirSync(this.config.storageRootPath, { recursive: true });
-      // TODO: move this to template-types service
-      for (const owner of Object.values(Owner)) {
-        fs.mkdirSync(path.join(this.config.storageRootPath, owner));
-      }
     }
     // Check we have necessary file-system permissions (read/write)
     fs.accessSync(this.config.storageRootPath, fs.constants.R_OK | fs.constants.W_OK);

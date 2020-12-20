@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
-import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
+import { ParseUUIDPipe } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 
@@ -16,13 +16,15 @@ import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 
 import { FindOneDto } from './dto/find-one.output';
 import { PagedOutputDto } from './dto/page.output';
-
-// import { CreateTemplateTypeInput } from './dto/create.input';
-// import { UpdateTemplateTypeInput } from './dto/update.input';
+import { CreateDto } from './dto/create.input';
+import { UpdateDto } from './dto/update.input';
 
 
 @Resolver('TemplateType')
-export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
+export class TemplateTypesResolver implements
+  Partial<gqlSchema.IQuery>,
+  Partial<gqlSchema.IMutation>
+{
   constructor(
     private readonly service: TemplateTypesService,
     private readonly templateFilesService: TemplateFilesService
@@ -62,12 +64,13 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
     }
   }
 
-  // @Mutation('createTemplateType')
-  // create(@Args('createTemplateTypeInput') createTemplateTypeInput: CreateTemplateTypeInput) {
-  //   return this.templateTypesService.create(createTemplateTypeInput);
-  // }
+  // gqlSchema.IMutation
+  @Mutation()
+  async createTemplateType(@Args('data') data: CreateDto): Promise<FindOneDto> {
+    return new FindOneDto(await this.service.create(data));
+  }
 
-  // Part of the IQuery, so the name should be the same as the field
+  // gqlSchema.IQuery
   @Query()
   async templateTypes(
     @Args('filter') filter: FilterDto,
@@ -81,19 +84,25 @@ export class TemplateTypesResolver implements Partial<gqlSchema.IQuery> {
     return response;
   }
 
-  // Part of the IQuery, so the method name should be the same as the GraphQL field
+  // gqlSchema.IQuery
   @Query()
   async templateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     return new FindOneDto(await this.service.findOne(id));
   }
 
-  // @Mutation('updateTemplateType')
-  // update(@Args('updateTemplateTypeInput') updateTemplateTypeInput: UpdateTemplateTypeInput) {
-  //   return this.templateTypesService.update(updateTemplateTypeInput.id, updateTemplateTypeInput);
-  // }
+  // gqlSchema.IMutation
+  @Mutation()
+  async updateTemplateType(
+    @Args('id', ParseUUIDPipe) id: string,
+    @Args('data') data: UpdateDto
+  ): Promise<FindOneDto>
+  {
+    return new FindOneDto(await this.service.update(id, data));
+  }
 
-  // @Mutation('removeTemplateType')
-  // remove(@Args('id') id: string) {
-  //   return this.templateTypesService.remove(id);
-  // }
+  // gqlSchema.IMutation
+  @Mutation()
+  async removeTemplateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
+    return new FindOneDto(await this.service.remove(id));
+  }
 }

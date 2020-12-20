@@ -1,3 +1,7 @@
+import * as path from 'path';
+import * as fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, FindOneOptions, Repository } from 'typeorm';
@@ -6,22 +10,15 @@ import { ConfigType } from '@nestjs/config';
 
 import appConfig from 'src/config/app.config';
 
-import * as path from 'path';
-import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
-
 import { Operators } from 'src/common/graphql/types/dto';
+
+import { TemplateTypesService } from 'src/template-types/service';
 
 import { TemplateFile } from './entities/entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
 import { CreateDto } from './dto/create.input';
-import { TemplateType } from 'src/template-types/entities/entity';
-import { TemplateTypesService } from 'src/template-types/service';
 import { UpdateDto } from './dto/update.input';
-
-// import { CreateTemplateFileInput } from './dto/create.input';
-// import { UpdateTemplateFileInput } from './dto/update.input';
 
 
 
@@ -43,7 +40,7 @@ export class TemplateFilesService {
     const type = await this.templateTypesService.findOne(data.templateTypeId, { relations: [] });
 
     const filePath = path.join(this.config.storageRootPath, type.owner, type.name);
-    // const filePath = 'storage';
+    // TODO: use ID as name or (better) transliterate as it for TemplateType
     const fileName = uuidv4() + path.extname(file.filename);
     await new Promise((resolve, reject) =>
       file.createReadStream()
@@ -52,16 +49,18 @@ export class TemplateFilesService {
         .on('error', reject)
     );
 
-    const entity = this.repository.create({
+    // TODO: if (data.makeCurrentFileOfItsType)
+
+    const created = await this.repository.save({
       templateType: type,
       name: fileName,
       mimeType: file.mimetype,
       title: data.title || file.filename
-    });
-
-    // TODO: if (data.makeCurrentFileOfItsType)
-
-    const created = await this.repository.save(entity);
+    });  // TODO: maybe retrieve and return findOne (with convenient relations and all)
+    created.templateType = type;
+    // if (data.makeCurrentFileOfItsType) {
+    //   created.currentFileOfType = type;
+    // }
     return created;
   }
 
@@ -121,15 +120,19 @@ export class TemplateFilesService {
   async update(id: string, data: UpdateDto): Promise<TemplateFile> {
     await this.repository.findOneOrFail(id);
 
-    if (data.title) {
-      await this.repository.save({
-        id: id,
-        title: data.title
-      });
-    }
+    if (Object.values(data).some(v => v ?? false)) {
+      if (data.title) {
+        await this.repository.save({
+          id: id,
+          title: data.title
+        });
+      }
 
-    if (data.makeCurrentFileOfItsType) {
-      // TODO
+      if (data.makeCurrentFileOfItsType) {
+        // TODO
+      }
+    } else {
+      console.warn(`No properties to change were been provided`);
     }
 
     return this.findOne(id);
@@ -137,15 +140,15 @@ export class TemplateFilesService {
 
   async remove(id: string): Promise<TemplateFile> {
     // TODO: what if this is a current file of some type?
+
     const removed = await this.findOne(id);
 
-    // TODO: const filePath = path.join(ROOT_PATH, removed.templateType.owner, removed.templateType.name, removed.name);
-    const filePath = path.join('upload', removed.name);
+    const filePath = path.join(this.config.storageRootPath, removed.templateType.owner, removed.templateType.name, removed.name);
     fs.unlinkSync(filePath);
 
     await this.repository.remove(removed);
     // Primary key is removed from the entity by the TypeORM at this point so we restore it manually.
-    // Probably a bad design decision, actually, see https://github.com/typeorm/typeorm/issues/1421
+    // Probably a bad design decision (in ORM), actually. See https://github.com/typeorm/typeorm/issues/1421
     removed.id = id;
     return removed;
   }

@@ -10,7 +10,7 @@ const definitionsFactory = new GraphQLDefinitionsFactory();
 definitionsFactory.generate({
   watch: true,
   typePaths: ['./src/**/*.graphql'],
-  path: join(process.cwd(), 'src/graphql.ts'),
+  path: join(process.cwd(), 'src', 'graphql.ts'),
   defaultScalarType: 'unknown',
   customScalarTypeMapping: {
     'Upload': 'FileUpload'
