@@ -5,13 +5,14 @@ import { TemplateType } from 'src/template-types/entities/entity';
 
 @Entity()
 export class TemplateFile {
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ManyToOne(() => TemplateType, templateType => templateType.files)
   templateType: TemplateType;
 
-  @Column({ update: false })
+  @Column()
   name: string;
 
   @Column()
@@ -30,4 +31,5 @@ export class TemplateFile {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
 }

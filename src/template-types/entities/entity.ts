@@ -10,7 +10,7 @@ export enum Owner {
 
 
 @Entity()
-@Unique(['currentFile', 'name'])  // TODO: currentFile also should belong to [files]
+@Unique(['name', 'currentFile'])
 export class TemplateType {
 
   @PrimaryGeneratedColumn('uuid')
@@ -26,7 +26,7 @@ export class TemplateType {
   @Column()
   title: string;
 
-  @Column({ update: false })
+  @Column()
   name: string;
 
   @Column({ default: true })
@@ -35,11 +35,11 @@ export class TemplateType {
   @OneToOne(() => TemplateFile, currentFile => currentFile.currentFileOfType, {
     cascade: true,
     nullable: true
-    // eager: true
   })
   @JoinColumn()
   currentFile?: TemplateFile;
 
   @OneToMany(() => TemplateFile, file => file.templateType)
   files: TemplateFile[];
+
 }

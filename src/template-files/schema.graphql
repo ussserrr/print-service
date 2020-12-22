@@ -14,12 +14,12 @@ type TemplateFile {
 input CreateTemplateFileInput {
   templateTypeId: ID!
   title: String
-  makeCurrentFileOfItsType: Boolean
+  isCurrentFileOfItsType: Boolean
 }
 
 input UpdateTemplateFileInput {
   title: String
-  makeCurrentFileOfItsType: Boolean
+  isCurrentFileOfItsType: Boolean
 }
 
 input TemplateFilesFilter {

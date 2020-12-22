@@ -1,3 +1,8 @@
+/**
+ * Source: https://gist.github.com/diolavr/d2d50686cb5a472f5696
+ * Modified by me
+ */
+
 const ru = new Map([
   ['а', 'a'], ['б', 'b'], ['в', 'v'], ['г', 'g'], ['д', 'd'], ['е', 'e'],
   ['є', 'e'], ['ё', 'e'], ['ж', 'j'], ['з', 'z'], ['и', 'i'], ['ї', 'yi'], ['й', 'i'],

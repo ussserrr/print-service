@@ -16,6 +16,8 @@ export class FindOneDto implements gqlSchema.TemplateType {
   @Type(() => TemplateFileFindOneDto)
   currentFile?: TemplateFileFindOneDto;
 
+  @Expose()
+  @Type(() => TemplateFilesPageDto)
   pageOfFiles?: TemplateFilesPageDto;
 
   constructor(entity?: Pick<FindOneDto, keyof FindOneDto>) {

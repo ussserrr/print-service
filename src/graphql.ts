@@ -50,12 +50,12 @@ export interface PageInput {
 export interface CreateTemplateFileInput {
     templateTypeId: string;
     title?: string;
-    makeCurrentFileOfItsType?: boolean;
+    isCurrentFileOfItsType?: boolean;
 }
 
 export interface UpdateTemplateFileInput {
     title?: string;
-    makeCurrentFileOfItsType?: boolean;
+    isCurrentFileOfItsType?: boolean;
 }
 
 export interface TemplateFilesFilter {

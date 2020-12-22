@@ -1,7 +1,10 @@
+import { ArrayNotEmpty, ValidateNested } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+
 import * as gqlSchema from 'src/graphql';
 import * as commonTypes from 'src/common/graphql/types/dto'
-import { ArrayNotEmpty, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+
+import { Owner as dbOwner } from '../entities/entity';
 
 
 export class FilterDto implements gqlSchema.TemplateTypesFilter {
@@ -9,7 +12,10 @@ export class FilterDto implements gqlSchema.TemplateTypesFilter {
   @Type(() => commonTypes.CommonFilterDto)
   common?: commonTypes.CommonFilterDto;
 
-  @ArrayNotEmpty() owners?: gqlSchema.Owner[];  // TODO test this validation
+  @ArrayNotEmpty()
+  @Transform((value: gqlSchema.Owner[]) => value.map(item => dbOwner[item]))
+  owners?: dbOwner[];
+
   active?: boolean;
 
   constructor(mapping?: Pick<FilterDto, keyof FilterDto>) {

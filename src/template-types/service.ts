@@ -6,8 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { ConfigType } from '@nestjs/config';
 
-const rimraf = require('rimraf');  // works only like that
-import { ruToEn } from 'src/util/transliterate/ru-to-en';
+const _ = require('lodash');  // works only this way
+const rimraf = require('rimraf');
+import { getUniqueNameFromTitle } from 'src/util/util';
 
 import appConfig from 'src/config/app.config';
 
@@ -16,7 +17,6 @@ import { TemplateFile } from 'src/template-files/entities/entity';
 import { TemplateType } from './entities/entity';
 
 import { FilterDto, RequestOptionsDto } from './dto/find-all.input';
-
 import { CreateDto } from './dto/create.input';
 import { UpdateDto } from './dto/update.input';
 
@@ -36,27 +36,14 @@ export class TemplateTypesService {
   }
 
 
-  async create(data: CreateDto): Promise<TemplateType> {
-    let name = ruToEn(data.title)  // transliterate
-      .replace(/[- ]/g, '_')  // ' ', '-'     =>     '_'
-      .replace(/[^\w]/g, '')  // leave only alphanumerical and _
-      .toLowerCase();
+  async create(input: CreateDto): Promise<TemplateType> {
+    const containingPath = path.join(this.config.storageRootPath, input.owner);
+    const name = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
+    // In case 'owner' folder doesn't exist yet we use 'recursive=true'
+    fs.mkdirSync(path.join(containingPath, name), { recursive: true });
 
-    let typePath = path.join(this.config.storageRootPath, data.owner, name);
-    const typePathExists = await new Promise<boolean>(resolve => fs.access(typePath, err => resolve(err ? false : true)));
-    if (typePathExists) {
-      // Generate new name and retry
-      name = name + '_' + new Date().valueOf();  // use current date as randomization factor
-      typePath = path.join(this.config.storageRootPath, data.owner, name);
-      fs.mkdirSync(typePath);
-    } else {
-      fs.mkdirSync(typePath, { recursive: true });
-    }
-
-    // Don't need to retrieve the findOne as this fresh entity doesn't have any linked entities anyway
-    return this.repository.save({ ...data, name });
-
-    // TODO: revert changes if error occurred
+    // Don't need to retrieve the findOne as this fresh entity doesn't have any linked entities yet anyway
+    return this.repository.save({ ...input, name });
   }
 
 
@@ -74,10 +61,11 @@ export class TemplateTypesService {
       q = q.andWhereInIds(filter.common?.ids);
 
     if (Array.isArray(filter.owners) && filter.owners.length)
-      q = q.andWhere('type.owner IN (:...owners)', { owners: filter.owners.map(o => o.toLowerCase()) });  // TODO: implementation details
+      q = q.andWhere('type.owner IN (:...owners)', { owners: filter.owners });
 
     if (options.page?.sortBy && Object.keys(options.page?.sortBy).length) {
-      if (this.entityColumns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
+      if (this.entityColumns.some(f => options.page?.sortBy?.field.startsWith(f))) {
+        // Field can actually be "nested"
         q = q.orderBy(`type.${options.page.sortBy.field}`, options.page.sortBy.order);
       } else {
         throw new Error(`sortBy: no such field '${options.page.sortBy.field}'`);
@@ -101,12 +89,36 @@ export class TemplateTypesService {
   }
 
 
-  async update(id: string, data: UpdateDto): Promise<TemplateType> {
-    await this.repository.findOneOrFail(id);
+  async update(id: string, input: UpdateDto): Promise<TemplateType> {
+    const type = await this.repository.findOneOrFail(id, { relations: ['currentFile'] });
 
-    if (Object.values(data).some(v => v ?? false)) {
-      // TODO: probably we can (and should) rename a folder when title is changing
-      await this.repository.save({ ...data, id });
+    if (Object.values(input).some(v => v !== undefined)) {
+      const updateData: Partial<TemplateType & UpdateDto> = Object.assign({ id }, input);
+
+      if (input.title) {
+        const containingPath = path.join(this.config.storageRootPath, type.owner);
+        const newName = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
+        if (newName !== type.name) {  // title may change but transliterated name don't
+          fs.renameSync(
+            path.join(containingPath, type.name),
+            path.join(containingPath, newName)
+          );
+          updateData.name = newName;
+          // TODO: what if an error will occur before flushing the record? Need to consider some rollback mechanics
+        }
+      }
+
+      if (input.currentFileId && input.currentFileId !== type.currentFile?.id) {
+        const fileToMakeCurrent = await this.filesRepository.findOneOrFail(input.currentFileId, { relations: ['templateType'] });
+        if (fileToMakeCurrent.templateType.id !== id) {
+          throw new Error(`currentFileId="${input.currentFileId}" doesn't belong to the "${type.title}" files`);  // TODO: warn
+        }
+        updateData.currentFile = fileToMakeCurrent;
+      } else if (input.currentFileId === null && type.currentFile) {
+        updateData.currentFile = null as any;
+      }
+
+      await this.repository.save(updateData);
     } else {
       console.warn(`No properties to change were been provided`);
     }
@@ -116,15 +128,23 @@ export class TemplateTypesService {
 
 
   async remove(id: string): Promise<TemplateType> {
-    const removed = await this.findOne(id, { relations: ['currentFile', 'files'] });
+    const removed = await this.repository.findOneOrFail(id, { relations: ['currentFile', 'files'] });
 
+    const removedCopy = _.cloneDeepWith(removed, val => {
+      if (_.isObjectLike(val)) {
+        val._removed = true;
+      }
+    });
+
+    if (removed.currentFile) {
+      // Need to break the relation first
+      await this.repository.save({ id, currentFile: null as any });
+    }
     await this.filesRepository.remove(removed.files);
     rimraf.sync(path.join(this.config.storageRootPath, removed.owner, removed.name));
 
     await this.repository.remove(removed);
-    // Primary key is removed from the entity by the TypeORM at this point so we restore it manually.
-    // Probably a bad design decision (in ORM), actually. See https://github.com/typeorm/typeorm/issues/1421
-    removed.id = id;
-    return removed;
+
+    return removedCopy;
   }
 }

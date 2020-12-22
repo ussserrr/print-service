@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
-import { ParseUUIDPipe } from '@nestjs/common';
+import { ParseUUIDPipe, SerializeOptions } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 
@@ -20,6 +20,7 @@ import { CreateDto } from './dto/create.input';
 import { UpdateDto } from './dto/update.input';
 
 
+
 @Resolver('TemplateType')
 export class TemplateTypesResolver implements
   Partial<gqlSchema.IQuery>,
@@ -37,6 +38,18 @@ export class TemplateTypesResolver implements
 
   @ResolveField('pageOfFiles')
   async getFilesOf(@Parent() type: FindOneDto): Promise<TemplateFilesPageDto> {
+    if (type['_removed']) {
+      // Special case: when we deleting the entity its files doesn't exist anymore as well
+      // so we "cache" them (to return back to the caller) at the "files" field and mark the
+      // object as "_removed". It isn't particularly type-safe so consider it as a little "hack".
+      // Also the client cannot (and should not) request nested fields as any try to access
+      // these objects will fail
+      return new TemplateFilesPageDto({
+        items: type['files'],
+        total: type['files'].length
+      });
+    }
+
     const filter = new TemplateFilesFilterDto({
       templateTypes: [type.id]
     });
@@ -50,15 +63,22 @@ export class TemplateTypesResolver implements
       }
     });
     const [ data, count ] = await this.templateFilesService.findAll(filter, options);
-    const response = new TemplateFilesPageDto({
+    return new TemplateFilesPageDto({
       items: data,
       total: count
     });
-    return response;
   }
 
   @ResolveField('currentFile')
   async getCurrentFileOf(@Parent() type: FindOneDto): Promise<TemplateFilesFindOneDto | undefined> {
+    if (type['_removed']) {
+      // Special case: when we deleting the entity its current file doesn't exist anymore as well
+      // so we "cache" it (to return back to the caller) and mark the whole object as "_removed".
+      // It isn't particularly type-safe so consider it as a little "hack". Also the client cannot
+      // (and should not) request nested fields as any try to access these objects will fail
+      return new TemplateFilesFindOneDto(type.currentFile);
+    }
+
     if (type.currentFile?.id) {
       return new TemplateFilesFindOneDto(await this.templateFilesService.findOne(type.currentFile.id));
     }
@@ -66,8 +86,8 @@ export class TemplateTypesResolver implements
 
   // gqlSchema.IMutation
   @Mutation()
-  async createTemplateType(@Args('data') data: CreateDto): Promise<FindOneDto> {
-    return new FindOneDto(await this.service.create(data));
+  async createTemplateType(@Args('data') input: CreateDto): Promise<FindOneDto> {
+    return new FindOneDto(await this.service.create(input));
   }
 
   // gqlSchema.IQuery
@@ -77,11 +97,10 @@ export class TemplateTypesResolver implements
     @Args('options') options: RequestOptionsDto
   ): Promise<PagedOutputDto> {
     const [ data, count ] = await this.service.findAll(filter, options);
-    const response = new PagedOutputDto({
+    return new PagedOutputDto({
       items: data,
       total: count
     });
-    return response;
   }
 
   // gqlSchema.IQuery
@@ -94,13 +113,19 @@ export class TemplateTypesResolver implements
   @Mutation()
   async updateTemplateType(
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('data') data: UpdateDto
+    @Args('data') input: UpdateDto
   ): Promise<FindOneDto>
   {
-    return new FindOneDto(await this.service.update(id, data));
+    return new FindOneDto(await this.service.update(id, input));
   }
 
   // gqlSchema.IMutation
+  // Special case: when we deleting the entity its related objects doesn't exist anymore as well
+  // so we "cache" them (to return back to the caller) and mark the whole object as "_removed".
+  // Therefore we should tell the serializer to preserve our custom properties. It isn't
+  // particularly type-safe so consider it as a little "hack". Also the client cannot (and should
+  // not) request nested fields as any try to access these objects will fail
+  @SerializeOptions({ strategy: 'exposeAll' })
   @Mutation()
   async removeTemplateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     return new FindOneDto(await this.service.remove(id));

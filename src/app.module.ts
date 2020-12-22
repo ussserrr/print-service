@@ -19,7 +19,6 @@ import { AppService } from './app.service';
 import { TemplateFilesModule } from './template-files/module';
 import { TemplateFilesService } from './template-files/service';
 
-import { Owner } from './template-types/entities/entity';
 import { TemplateTypesModule } from './template-types/module';
 import { TemplateTypesService } from './template-types/service';
 
@@ -41,8 +40,14 @@ const graphqlConfig: GqlModuleOptions = {
       errorMessage = error.message;
     }
 
+    let message = `${errorType}: ${errorMessage}`;
+    if (Array.isArray(error.path) && error.path.length) {
+      // Sometimes present when walking GraphQL graph
+      message = message + ` (${error.path.join('.')})`;
+    }
+
     const formattedError: GraphQLFormattedError = {
-      message: `${errorType}: ${errorMessage}`
+      message: message
     };
     return formattedError;
   },

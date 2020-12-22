@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +8,8 @@ import { FileUpload } from 'graphql-upload';
 import { ConfigType } from '@nestjs/config';
 
 import appConfig from 'src/config/app.config';
+
+import { getUniqueNameFromTitle } from 'src/util/util';
 
 import { Operators } from 'src/common/graphql/types/dto';
 
@@ -36,31 +37,32 @@ export class TemplateFilesService {
   }
 
 
-  async create(file: FileUpload, data: CreateDto): Promise<TemplateFile> {
-    const type = await this.templateTypesService.findOne(data.templateTypeId, { relations: [] });
+  async create(file: FileUpload, input: CreateDto): Promise<TemplateFile> {
+    const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: [] });
 
-    const filePath = path.join(this.config.storageRootPath, type.owner, type.name);
-    // TODO: use ID as name or (better) transliterate as it for TemplateType
-    const fileName = uuidv4() + path.extname(file.filename);
+    const title = input.title || file.filename;
+    const containingPath = path.join(this.config.storageRootPath, type.owner, type.name);
+    const name = await getUniqueNameFromTitle(containingPath, title, 'file', path.extname(file.filename));
     await new Promise((resolve, reject) =>
       file.createReadStream()
-        .pipe(fs.createWriteStream(path.join(filePath, fileName)))
+        .pipe(fs.createWriteStream(path.join(containingPath, name)))
         .on('finish', resolve)
         .on('error', reject)
     );
 
-    // TODO: if (data.makeCurrentFileOfItsType)
-
     const created = await this.repository.save({
+      name,
+      title,
       templateType: type,
-      name: fileName,
-      mimeType: file.mimetype,
-      title: data.title || file.filename
-    });  // TODO: maybe retrieve and return findOne (with convenient relations and all)
+      mimeType: file.mimetype
+    });
+
     created.templateType = type;
-    // if (data.makeCurrentFileOfItsType) {
-    //   created.currentFileOfType = type;
-    // }
+    if (input.isCurrentFileOfItsType) {
+      await this.templateTypesService.update(type.id, { currentFileId: created.id });
+      created.currentFileOfType = type;
+    }
+
     return created;
   }
 
@@ -93,7 +95,8 @@ export class TemplateFilesService {
     }
 
     if (options.page?.sortBy) {
-      if (this.entityColumns.some(f => options.page?.sortBy?.field.startsWith(f))) {  // field can actually be "nested", e.g. file.templateType.id
+      if (this.entityColumns.some(f => options.page?.sortBy?.field.startsWith(f))) {
+        // Field can actually be "nested", e.g. file.templateType.id
         q = q.orderBy(`file.${options.page.sortBy.field}`, options.page.sortBy.order);
       } else {
         throw new Error(`sortBy: no such field '${options.page.sortBy.field}'`);
@@ -117,20 +120,31 @@ export class TemplateFilesService {
   }
 
 
-  async update(id: string, data: UpdateDto): Promise<TemplateFile> {
-    await this.repository.findOneOrFail(id);
+  async update(id: string, input: UpdateDto): Promise<TemplateFile> {
+    const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
 
-    if (Object.values(data).some(v => v ?? false)) {
-      if (data.title) {
-        await this.repository.save({
-          id: id,
-          title: data.title
-        });
+    if (Object.values(input).some(v => v !== undefined)) {
+      const updateData: Partial<TemplateFile & UpdateDto> = Object.assign({ id }, input);
+
+      if (input.title && input.title !== file.title) {
+        const containingPath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name);
+        const newName = await getUniqueNameFromTitle(containingPath, input.title, 'file', path.extname(file.name));
+        if (newName !== file.name) {  // title may change but transliterated name don't
+          fs.renameSync(
+            path.join(containingPath, file.name),
+            path.join(containingPath, newName)
+          );
+          updateData.name = newName;
+        }
       }
 
-      if (data.makeCurrentFileOfItsType) {
-        // TODO
+      if (input.isCurrentFileOfItsType === true) {
+        await this.templateTypesService.update(file.templateType.id, { currentFileId: id });
+      } else if (input.isCurrentFileOfItsType === false) {
+        await this.templateTypesService.update(file.templateType.id, { currentFileId: null as any });
       }
+
+      await this.repository.save(updateData);
     } else {
       console.warn(`No properties to change were been provided`);
     }
@@ -139,9 +153,13 @@ export class TemplateFilesService {
   }
 
   async remove(id: string): Promise<TemplateFile> {
-    // TODO: what if this is a current file of some type?
+    const removed = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
 
-    const removed = await this.findOne(id);
+    if (removed.currentFileOfType) {
+      // Break the relation first otherwise the deletion will fail
+      await this.templateTypesService.update(removed.currentFileOfType.id, { currentFileId: null as any });
+      // TODO: warn the user
+    }
 
     const filePath = path.join(this.config.storageRootPath, removed.templateType.owner, removed.templateType.name, removed.name);
     fs.unlinkSync(filePath);

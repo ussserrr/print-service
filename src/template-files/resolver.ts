@@ -16,6 +16,7 @@ import { CreateDto } from './dto/create.input';
 import { UpdateDto } from './dto/update.input';
 
 
+
 @Resolver('TemplateFile')
 export class TemplateFilesResolver implements
   Partial<gqlSchema.IQuery>,
@@ -35,15 +36,11 @@ export class TemplateFilesResolver implements
   @Mutation()
   async createTemplateFile(
     @Args('file') filePromise: FileUpload,
-    @Args('data') data: CreateDto
+    @Args('data') input: CreateDto
   ): Promise<FindOneDto>
   {
     const file = await filePromise;
-    // console.log('file', file, 'data', data);
-    // return new FindOneDto();
-    const created = new FindOneDto(await this.service.create(file, data));
-    // console.log('created', created);
-    return created;
+    return new FindOneDto(await this.service.create(file, input));
   }
 
   // gqlSchema.IQuery
@@ -54,11 +51,10 @@ export class TemplateFilesResolver implements
   ): Promise<PagedOutputDto>
   {
     const [ data, count ] = await this.service.findAll(filter, options);
-    const response = new PagedOutputDto({
+    return new PagedOutputDto({
       items: data,
       total: count
     });
-    return response;
   }
 
   // gqlSchema.IQuery
@@ -71,10 +67,10 @@ export class TemplateFilesResolver implements
   @Mutation()
   async updateTemplateFile(
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('data') data: UpdateDto
+    @Args('data') input: UpdateDto
   ): Promise<FindOneDto>
   {
-    return new FindOneDto(await this.service.update(id, data));
+    return new FindOneDto(await this.service.update(id, input));
   }
 
   // gqlSchema.IMutation

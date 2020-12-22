@@ -1,4 +1,4 @@
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty } from 'class-validator';
 
 import * as gqlSchema from 'src/graphql';
