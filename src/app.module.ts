@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { GraphQLResponse, GraphQLRequestContext } from 'apollo-server-types';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
 
@@ -24,7 +25,24 @@ import { TemplateTypesService } from './template-types/service';
 
 
 const graphqlConfig: GqlModuleOptions = {
-  formatError: (error: GraphQLError) => {
+  formatResponse: (
+    response: GraphQLResponse | null,
+    requestContext: GraphQLRequestContext<Record<string, any>>,
+  ): GraphQLResponse =>
+  {
+    const warnings = requestContext.context.warnings;
+    if (Array.isArray(warnings) && warnings.length) {
+      if (response?.data) {
+        response.data.warnings = warnings;
+      } else if (response) {
+        response.data = { warnings };
+      } else {
+        response = { data: { warnings } };
+      }
+    }
+    return response || ({} as GraphQLResponse);
+  },
+  formatError: (error: GraphQLError): GraphQLFormattedError => {
     const errorType =
       error.extensions?.exception?.response?.error ||
       'Error';

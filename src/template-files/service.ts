@@ -152,13 +152,15 @@ export class TemplateFilesService {
     return this.findOne(id);
   }
 
-  async remove(id: string): Promise<TemplateFile> {
+  async remove(id: string, warnings?: string[]): Promise<TemplateFile> {
     const removed = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
 
     if (removed.currentFileOfType) {
       // Break the relation first otherwise the deletion will fail
       await this.templateTypesService.update(removed.currentFileOfType.id, { currentFileId: null as any });
-      // TODO: warn the user
+      if (Array.isArray(warnings)) {
+        warnings.push(`Deleted file was a current one for the "${removed.currentFileOfType.title}" type`);
+      }
     }
 
     const filePath = path.join(this.config.storageRootPath, removed.templateType.owner, removed.templateType.name, removed.name);

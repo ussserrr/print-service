@@ -89,7 +89,7 @@ export class TemplateTypesService {
   }
 
 
-  async update(id: string, input: UpdateDto): Promise<TemplateType> {
+  async update(id: string, input: UpdateDto, warnings?: string[]): Promise<TemplateType> {
     const type = await this.repository.findOneOrFail(id, { relations: ['currentFile'] });
 
     if (Object.values(input).some(v => v !== undefined)) {
@@ -110,10 +110,16 @@ export class TemplateTypesService {
 
       if (input.currentFileId && input.currentFileId !== type.currentFile?.id) {
         const fileToMakeCurrent = await this.filesRepository.findOneOrFail(input.currentFileId, { relations: ['templateType'] });
-        if (fileToMakeCurrent.templateType.id !== id) {
-          throw new Error(`currentFileId="${input.currentFileId}" doesn't belong to the "${type.title}" files`);  // TODO: warn
+        if (fileToMakeCurrent.templateType.id === id) {
+          updateData.currentFile = fileToMakeCurrent;
+        } else {
+          const msg = `currentFileId="${input.currentFileId}" doesn't belong to the "${type.title}" files`;
+          if (Array.isArray(warnings)) {
+            warnings.push(msg);
+          } else {
+            console.warn(msg);  // fallback: server log
+          }
         }
-        updateData.currentFile = fileToMakeCurrent;
       } else if (input.currentFileId === null && type.currentFile) {
         updateData.currentFile = null as any;
       }

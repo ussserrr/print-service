@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Parent, Context, ResolveField } from '@nestjs/graphql';
 import { ParseUUIDPipe, SerializeOptions } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
@@ -109,22 +109,21 @@ export class TemplateTypesResolver implements
     return new FindOneDto(await this.service.findOne(id));
   }
 
-  // gqlSchema.IMutation
-  @Mutation()
-  async updateTemplateType(
+  // This is a part of gqlSchema.IQuery as well but we lose the exact signature introducing the @Context()
+  @Mutation('updateTemplateType')
+  async update(
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('data') input: UpdateDto
+    @Args('data') input: UpdateDto,
+    @Context() ctx
   ): Promise<FindOneDto>
   {
-    return new FindOneDto(await this.service.update(id, input));
+    if (!Array.isArray(ctx.warnings)) {
+      ctx.warnings = [];
+    }
+    return new FindOneDto(await this.service.update(id, input, ctx.warnings));
   }
 
   // gqlSchema.IMutation
-  // Special case: when we deleting the entity its related objects doesn't exist anymore as well
-  // so we "cache" them (to return back to the caller) and mark the whole object as "_removed".
-  // Therefore we should tell the serializer to preserve our custom properties. It isn't
-  // particularly type-safe so consider it as a little "hack". Also the client cannot (and should
-  // not) request nested fields as any try to access these objects will fail
   @SerializeOptions({ strategy: 'exposeAll' })
   @Mutation()
   async removeTemplateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {

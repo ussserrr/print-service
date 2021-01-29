@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Parent, ResolveField } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Parent, Context, ResolveField } from '@nestjs/graphql';
 import { ParseUUIDPipe } from '@nestjs/common';
 import { FileUpload } from 'graphql-upload';
 
@@ -73,9 +73,16 @@ export class TemplateFilesResolver implements
     return new FindOneDto(await this.service.update(id, input));
   }
 
-  // gqlSchema.IMutation
-  @Mutation()
-  async removeTemplateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    return new FindOneDto(await this.service.remove(id));
+  // This is a part of gqlSchema.IQuery as well but we lose the exact signature introducing the @Context()
+  @Mutation('removeTemplateFile')
+  async remove(
+    @Args('id', ParseUUIDPipe) id: string,
+    @Context() ctx
+  ): Promise<FindOneDto>
+  {
+    if (!Array.isArray(ctx.warnings)) {
+      ctx.warnings = [];
+    }
+    return new FindOneDto(await this.service.remove(id, ctx.warnings));
   }
 }
