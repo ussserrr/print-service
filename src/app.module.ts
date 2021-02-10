@@ -8,11 +8,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { GraphQLResponse, GraphQLRequestContext } from 'apollo-server-types';
+import GraphQLJSON from 'graphql-type-json';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
 
+import { BullModule } from '@nestjs/bull';
+
 import appConfig from './config/app.config';
 import dbConfig from './config/database.config';
+import queueConfig from 'src/config/queue.config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +26,10 @@ import { TemplateFilesService } from './template-files/service';
 
 import { TemplateTypesModule } from './template-types/module';
 import { TemplateTypesService } from './template-types/service';
+
+import { PrintModule } from './print/module';
+import { PrintService } from './print/service';
+import { PrintController } from './print/controller';
 
 
 const graphqlConfig: GqlModuleOptions = {
@@ -70,6 +78,7 @@ const graphqlConfig: GqlModuleOptions = {
     return formattedError;
   },
   typePaths: ['./**/*.graphql'],
+  resolvers: { JSON: GraphQLJSON },
 
   /**
    * WARNING: make sure this config is matching the one from the typings generation
@@ -97,21 +106,32 @@ const graphqlConfig: GqlModuleOptions = {
       inject: [dbConfig.KEY],
       useFactory: (config: ConfigType<typeof dbConfig>) => config
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule.forFeature(queueConfig)],
+      inject: [queueConfig.KEY],
+      useFactory: (config: ConfigType<typeof queueConfig>) => config
+    }),
     GraphQLModule.forRoot(graphqlConfig),
     TemplateFilesModule,
-    TemplateTypesModule
+    TemplateTypesModule,
+    PrintModule
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    PrintController
+  ],
   providers: [
     AppService,
     TemplateTypesService,
-    TemplateFilesService
+    TemplateFilesService,
+    PrintService
   ],
   exports: [
     AppService,
     TypeOrmModule,
     TemplateTypesService,
-    TemplateFilesService
+    TemplateFilesService,
+    PrintService
   ]
 })
 export class AppModule implements OnModuleInit {

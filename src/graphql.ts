@@ -112,6 +112,7 @@ export interface IQuery {
     templateFile(id: string): TemplateFile | Promise<TemplateFile>;
     templateTypes(filter?: TemplateTypesFilter, options?: TemplateTypesRequestOptions): TemplateTypesPageResult | Promise<TemplateTypesPageResult>;
     templateType(id: string): TemplateType | Promise<TemplateType>;
+    printTemplateType(id: string, fillData?: JSON): PrintOutput | Promise<PrintOutput>;
 }
 
 export interface IMutation {
@@ -137,4 +138,9 @@ export interface TemplateTypesPageResult {
     total: number;
 }
 
+export interface PrintOutput {
+    token: string;
+}
+
 export type Upload = FileUpload;
+export type JSON = unknown;

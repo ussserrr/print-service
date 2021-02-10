@@ -85,4 +85,5 @@ export class TemplateFilesResolver implements
     }
     return new FindOneDto(await this.service.remove(id, ctx.warnings));
   }
+
 }

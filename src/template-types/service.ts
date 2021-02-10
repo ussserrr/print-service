@@ -25,7 +25,7 @@ import { UpdateDto } from './dto/update.input';
 @Injectable()
 export class TemplateTypesService {
 
-  entityColumns: string[] = [];
+  private entityColumns: string[] = [];
 
   constructor(
     @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>,
@@ -153,4 +153,5 @@ export class TemplateTypesService {
 
     return removedCopy;
   }
+
 }

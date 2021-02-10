@@ -129,4 +129,20 @@ export class TemplateTypesResolver implements
   async removeTemplateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     return new FindOneDto(await this.service.remove(id));
   }
+
+  // gqlSchema.IQuery
+  @Query()
+  async printTemplateType(
+    @Args('id', ParseUUIDPipe) id: string,
+    @Args('fillData') fillData?: Record<string, any>
+  ): Promise<gqlSchema.PrintOutput>
+  {
+    const template = await this.service.findOne(id);
+    if (template.currentFile?.id) {
+      return this.templateFilesService.print(template.currentFile.id, fillData);
+    } else {
+      throw new Error(`No current file is set for the TemplateType id=${id}`);
+    }
+  }
+
 }

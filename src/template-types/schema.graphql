@@ -1,3 +1,5 @@
+scalar JSON
+
 enum Owner {
   DRIVER
   CAR
@@ -42,12 +44,20 @@ type TemplateTypesPageResult {
   total: Int!
 }
 
+type PrintOutput {
+  token: String!
+}
+
 type Query {
   templateTypes(
     filter: TemplateTypesFilter = {}
     options: TemplateTypesRequestOptions = {}
   ): TemplateTypesPageResult!
   templateType(id: ID!): TemplateType
+  printTemplateType(
+    id: ID!
+    fillData: JSON
+  ): PrintOutput
 }
 
 type Mutation {

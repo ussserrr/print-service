@@ -14,6 +14,7 @@ import { getUniqueNameFromTitle } from 'src/util/util';
 import { Operators } from 'src/common/graphql/types/dto';
 
 import { TemplateTypesService } from 'src/template-types/service';
+import { PrintService } from 'src/print/service';
 
 import { TemplateFile } from './entities/entity';
 
@@ -26,12 +27,13 @@ import { UpdateDto } from './dto/update.input';
 @Injectable()
 export class TemplateFilesService {
 
-  entityColumns: string[] = [];
+  private entityColumns: string[] = [];
 
   constructor(
     @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>,
     @InjectRepository(TemplateFile) private repository: Repository<TemplateFile>,
-    private readonly templateTypesService: TemplateTypesService
+    private readonly templateTypesService: TemplateTypesService,
+    private readonly printService: PrintService
   ) {
     this.entityColumns = this.repository.metadata.ownColumns.map(column => column.propertyName);
   }
@@ -152,6 +154,7 @@ export class TemplateFilesService {
     return this.findOne(id);
   }
 
+
   async remove(id: string, warnings?: string[]): Promise<TemplateFile> {
     const removed = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
 
@@ -172,4 +175,12 @@ export class TemplateFilesService {
     removed.id = id;
     return removed;
   }
+
+
+  async print(id: string, data?: Record<string, any>) {
+    const file = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
+    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
+    return this.printService.print(filePath, data);
+  }
+
 }

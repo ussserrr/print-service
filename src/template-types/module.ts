@@ -26,8 +26,8 @@ import { TemplateTypesResolver } from './resolver';
     TemplateFilesService
   ],
   exports: [
-    TemplateTypesService,
-    TypeOrmModule
+    TypeOrmModule,
+    TemplateTypesService
   ]
 })
 export class TemplateTypesModule {}

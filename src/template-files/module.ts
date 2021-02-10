@@ -12,21 +12,27 @@ import { TemplateFile } from './entities/entity';
 import { TemplateFilesService } from './service';
 import { TemplateFilesResolver } from './resolver';
 
+import { PrintModule } from 'src/print/module';
+import { PrintService } from 'src/print/service';
+
 
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
     TypeOrmModule.forFeature([TemplateFile]),
-    forwardRef(() => TemplateTypesModule)
+    forwardRef(() => TemplateTypesModule),
+    PrintModule
   ],
   providers: [
     TemplateFilesResolver,
     TemplateFilesService,
-    TemplateTypesService
+    TemplateTypesService,
+    PrintService
   ],
   exports: [
+    TypeOrmModule,
     TemplateFilesService,
-    TypeOrmModule
+    PrintService
   ]
 })
 export class TemplateFilesModule {}

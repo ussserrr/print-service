@@ -1,7 +1,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
+const _ = require('lodash');  // works only this way
+
 import { ruToEn } from './transliterate/ru-to-en';
+
 
 type PathType = 'file' | 'dir';
 
@@ -41,4 +44,39 @@ async function getUniqueNameFromTitle(parentPath: string, title: string, pathTyp
   return name;
 }
 
-export { getUniqueNameFromTitle };
+
+interface FlattenObjectOpts {
+  out: object,
+  prefix: string,
+  sep: string
+}
+
+function flattenObject(o: object, opts: FlattenObjectOpts = {
+  out: {},
+  prefix: '',
+  sep: '.'
+}) {
+  for (const key in o) {
+    const val = o[key];
+    if (_.isObject(val) && !_.isEmpty(val)) {
+      flattenObject(val, {
+        out: opts.out,
+        prefix: opts.prefix.length ? (opts.prefix + opts.sep + key) : key,
+        sep: opts.sep
+      });
+    } else {
+      if (opts.prefix.length) {
+        opts.out[opts.prefix + opts.sep + key] = val;
+      } else {
+        opts.out[key] = val;
+      }
+    }
+  }
+  return opts.out;
+}
+
+
+export {
+  getUniqueNameFromTitle,
+  flattenObject
+};
