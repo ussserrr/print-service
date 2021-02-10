@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,15 +9,18 @@ const _ = require('lodash');
 import { CompletedEventCallback, FailedEventCallback, Job, Queue } from 'bull';
 import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bull';
 
+import printConfig from 'src/config/print.config';
 import * as gqlSchema from 'src/graphql';  // we don't "expose" GraphQL to services, remember?
 
 import { PrintJob, PrintJobOutput } from './lib';
+import { ConfigType } from '@nestjs/config';
 
 
 @Injectable()
 export class PrintService/* implements OnModuleDestroy*/ {
 
   constructor(
+    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @InjectQueue('print') private readonly queue: Queue<PrintJob>
   ) {}
 
@@ -45,7 +48,7 @@ export class PrintService/* implements OnModuleDestroy*/ {
     const token = uuidv4();
 
     await new Promise<void>(async (resolve, reject) => {
-      // Prepare listeners before adding a job to append them faster
+      // Prepare listeners before adding a job to register them faster
       const onCompleted: CompletedEventCallback<PrintJob> = (completedJob: Job<PrintJob>, result: PrintJobOutput) => {
         if (completedJob.id === token) {
           console.log('completed');
@@ -72,7 +75,10 @@ export class PrintService/* implements OnModuleDestroy*/ {
       await this.queue.add('print', {
         templatePath,
         fillData
-      }, { jobId: token });
+      }, {
+        jobId: token,
+        timeout: this.config.printJob.timeout
+      });
 
       this.queue.addListener('completed', onCompleted);
       this.queue.addListener('failed', onFailed);
@@ -83,19 +89,9 @@ export class PrintService/* implements OnModuleDestroy*/ {
 
 
   async getPrintOutput(token: string): Promise<fs.ReadStream> {
-    // const jobId = (await this.cache.get('print-service:jobs-tokens:' + token)) as JobId;
-    // console.log('jobId', jobId);
     const job = await this.queue.getJob(token);
     if (job) {
-      const filePath = job.returnvalue?.path;
-      const stream = fs.createReadStream(filePath, { emitClose: true });
-      // stream.once('close', () => {
-      //   console.log('stream has been closed');
-      //   // fs.unlink(filePath, getErrorHandler('unlink'));
-      //   // this.cache.del(token, getErrorHandler('cache del'));
-      //   // job.remove().catch(getErrorHandler('job remove'));
-      // });
-      return stream;
+      return fs.createReadStream(job.returnvalue?.path);
     } else {
       throw new Error('Job not found for the given token');
     }
@@ -104,9 +100,12 @@ export class PrintService/* implements OnModuleDestroy*/ {
 }
 
 
+
 @Processor('print')
 export class PrintQueueConsumer {
+
   constructor(
+    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @InjectQueue('print') private readonly queue: Queue
   ) {
     // TODO: remove all jobs/queues on shutdown?..
@@ -125,17 +124,19 @@ export class PrintQueueConsumer {
         if (!repeatableJobs.some(j => j.name === 'purge-queue')) {
           // console.log('no purge-queue job found');
           queue.add('purge-queue', null, {
-            repeat: { every: 10 * 1000 /* seconds */ },
+            repeat: { every: config.purgeQueueJob.repeatEvery },
             removeOnComplete: true
           }).then(() => console.log('purge-queue job has been added'));
         }
       });
   }
 
+
   @OnGlobalQueueError()  // TODO: this will fire on all instances?...
   onGlobalQueueError(error: Error) {
     console.error(error);
   }
+
 
   @Process('purge-queue')
   async purgeQueue(job: Job) {
@@ -158,7 +159,7 @@ export class PrintQueueConsumer {
       .filter(job =>
         job.name === 'print' &&
         typeof job.returnvalue?.path === 'string' && job.returnvalue.path.length &&
-        DateTime.fromMillis(job.finishedOn!) < DateTime.local().minus({ minutes: 3 })
+        DateTime.fromMillis(job.finishedOn!) < DateTime.local().minus(this.config.printJob.removeAfter)
       )
       .map((job: Job<PrintJob>) => {
         console.log('successful print job', job.id);

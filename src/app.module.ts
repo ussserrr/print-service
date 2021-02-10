@@ -17,6 +17,7 @@ import { BullModule } from '@nestjs/bull';
 import appConfig from './config/app.config';
 import dbConfig from './config/database.config';
 import queueConfig from 'src/config/queue.config';
+import printConfig from 'src/config/print.config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -99,7 +100,7 @@ const graphqlConfig: GqlModuleOptions = {
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig]
+      load: [appConfig, printConfig]
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule.forFeature(dbConfig)],

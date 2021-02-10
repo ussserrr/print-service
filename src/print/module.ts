@@ -4,21 +4,22 @@ import { Module } from '@nestjs/common';
 
 import { BullModule } from '@nestjs/bull';
 
+import { ConfigModule } from '@nestjs/config';
+import printConfig from 'src/config/print.config';
+
 import { PrintQueueConsumer, PrintService } from './service';
 import { PrintController } from './controller';
 
 
 @Module({
   imports: [
+    ConfigModule.forFeature(printConfig),
     BullModule.registerQueue({
       name: 'print',
       processors: [{
         name: 'print',
         path: path.join(__dirname, 'worker.js')
       }],
-      defaultJobOptions: {
-        timeout: 30 * 1000  // TODO: test
-      }
     }),
     // CacheModule.registerAsync({
     //   imports: [ConfigModule.forFeature(cacheConfig)],
