@@ -1,3 +1,7 @@
+/**
+ * The file consists of recommended Docxtemplater procedures to fill the template file
+ */
+
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
@@ -76,6 +80,7 @@ export function fillTemplate(inputPath: string, fillData: Record<string, any>): 
 
   return tempFile;
 }
+
 
 export function renderToPDF(doc: temp.FileResult, timeout?: number) {
   const { dir, name } = path.parse(doc.name);

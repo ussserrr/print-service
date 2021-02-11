@@ -30,8 +30,6 @@ input TemplateTypesFilter {
   common: CommonFilter = {}
   active: Boolean
   owners: [Owner!]
-  # fileIds,  // TODO: files of these types includes given
-  # currentFileIds
 }
 
 input TemplateTypesRequestOptions {

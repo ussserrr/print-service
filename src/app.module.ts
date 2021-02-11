@@ -45,11 +45,11 @@ const graphqlConfig: GqlModuleOptions = {
   context: contextFactory,
   formatResponse: (
     response: GraphQLResponse | null,
-    context: GraphQLRequestContext<AppGraphQLContext>,
+    ctx: GraphQLRequestContext<AppGraphQLContext>,
   ): GraphQLResponse =>
   {
     // console.log('formatResponse', response);
-    const warnings = context.context.warnings;
+    const warnings = ctx.context.warnings;
     if (warnings.length) {
       if (response) {
         const extensions = response.extensions || (response.extensions = {});
@@ -60,7 +60,7 @@ const graphqlConfig: GqlModuleOptions = {
     }
     return response || {};
   },
-  // TODO: test again when multiple errors
+  // TODO: test again when there are multiple errors (e.g. graphql validation errors)
   // TODO: test when debug=false
   // TODO: probably use 'extensions', too
   formatError: (error: GraphQLError): GraphQLFormattedError => {

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
@@ -75,7 +75,7 @@ export class PrintService/* implements OnModuleDestroy*/ {
         templatePath,
         fillData
       }, {
-        jobId: token,
+        jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
         timeout: this.config.printJob.timeout
       });
 
@@ -92,7 +92,7 @@ export class PrintService/* implements OnModuleDestroy*/ {
     if (job) {
       return fs.createReadStream(job.returnvalue?.path);
     } else {
-      throw new Error('Job not found for the given token');
+      throw new NotFoundException('No job found for the given token');
     }
   }
 

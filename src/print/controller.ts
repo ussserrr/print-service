@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, Header, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
+
+import { Response } from 'express';
+
 import { PrintService } from './service';
 import { RequestDto } from './dto/request.dto';
-import { Response } from 'express';
+
 
 @Controller('print')
 export class PrintController {

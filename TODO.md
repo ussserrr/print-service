@@ -1,4 +1,4 @@
-# TODO
+# TODOs list
 
  - [±] check against the most strict TS configuration
  - [ ] return `leftJoin`ed `FindOne`s
@@ -14,3 +14,4 @@
  - [ ] limit number of files on the drive (check for creation and update)
  - [ ] TypeOrm entity validation, too (class-validator)
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
+ - [ ] Check/set requests timeouts (both REST/GraphQL)
