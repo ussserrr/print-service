@@ -38,13 +38,16 @@ export class TemplateTypesResolver implements
   }
 
   @ResolveField('pageOfFiles')
-  async getFilesOf(@Parent() type: FindOneDto): Promise<TemplateFilesPageDto> {
-    if (type['_removed']) {
+  async getFilesOf(
+    @Parent() type: FindOneDto,
+    @Context() ctx: AppGraphQLContext
+  ): Promise<TemplateFilesPageDto>
+  {
+    if (ctx.templateTypeIsRemoved) {
       // Special case: when we deleting the entity its files doesn't exist anymore as well
-      // so we "cache" them (to return back to the caller) at the "files" field and mark the
-      // object as "_removed". It isn't particularly type-safe so consider it as a little "hack".
-      // Also the client cannot (and should not) request nested fields as any try to access
-      // these objects will fail
+      // so we "cache" them (to return back to the caller) at the "files" field. It isn't
+      // particularly type-safe so consider it as a little "hack". Also the client cannot
+      // (and should not) request nested fields as any try to access these objects will fail
       return new TemplateFilesPageDto({
         items: type['files'],
         total: type['files'].length
@@ -71,12 +74,16 @@ export class TemplateTypesResolver implements
   }
 
   @ResolveField('currentFile')
-  async getCurrentFileOf(@Parent() type: FindOneDto): Promise<TemplateFilesFindOneDto | undefined> {
-    if (type['_removed']) {
-      // Special case: when we deleting the entity its current file doesn't exist anymore as well
-      // so we "cache" it (to return back to the caller) and mark the whole object as "_removed".
-      // It isn't particularly type-safe so consider it as a little "hack". Also the client cannot
-      // (and should not) request nested fields as any try to access these objects will fail
+  async getCurrentFileOf(
+    @Parent() type: FindOneDto,
+    @Context() ctx: AppGraphQLContext
+  ): Promise<TemplateFilesFindOneDto | undefined>
+  {
+    if (ctx.templateTypeIsRemoved) {
+      // Special case: when we deleting the entity its current file doesn't exist anymore
+      // either so we "cache" it (to return back to the caller) at the "currentFile" field.
+      // Also the client cannot (and should not) request nested fields as any try to access
+      // these objects will fail
       return new TemplateFilesFindOneDto(type.currentFile);
     }
 
@@ -122,10 +129,19 @@ export class TemplateTypesResolver implements
   }
 
   // gqlSchema.IMutation
+  // Special case: when we deleting the entity its files doesn't exist anymore as well
+  // so we "cache" them (to return back to the caller)
   @SerializeOptions({ strategy: 'exposeAll' })
-  @Mutation()
-  async removeTemplateType(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
-    return new FindOneDto(await this.service.remove(id));
+  @Mutation('removeTemplateType')
+  async remove(
+    @Args('id', ParseUUIDPipe) id: string,
+    @Context() ctx: AppGraphQLContext
+  ): Promise<FindOneDto>
+  {
+    const removed = new FindOneDto(await this.service.remove(id));
+    // Mark the entity as "removed" so other fields resolvers will not try to retrieve nested fields
+    ctx.templateTypeIsRemoved = true;
+    return removed;
   }
 
   // gqlSchema.IQuery

@@ -36,6 +36,7 @@ import { PrintController } from './print/controller';
 
 export interface AppGraphQLContext {
   warnings: string[];
+  templateTypeIsRemoved?: boolean;
 }
 const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
   warnings: []

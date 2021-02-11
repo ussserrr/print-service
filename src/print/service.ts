@@ -4,7 +4,6 @@ import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/
 
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
-const _ = require('lodash');
 
 import { CompletedEventCallback, FailedEventCallback, Job, Queue } from 'bull';
 import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bull';

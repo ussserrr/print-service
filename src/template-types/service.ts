@@ -6,8 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { ConfigType } from '@nestjs/config';
 
-const _ = require('lodash');  // works only this way
-const rimraf = require('rimraf');
+import * as rimraf from 'rimraf';
+import * as _ from 'lodash';
+
 import { getUniqueNameFromTitle } from 'src/util/util';
 
 import appConfig from 'src/config/app.config';
@@ -136,11 +137,7 @@ export class TemplateTypesService {
   async remove(id: string): Promise<TemplateType> {
     const removed = await this.repository.findOneOrFail(id, { relations: ['currentFile', 'files'] });
 
-    const removedCopy = _.cloneDeepWith(removed, val => {
-      if (_.isObjectLike(val)) {
-        val._removed = true;
-      }
-    });
+    const removedCopy = _.cloneDeep(removed);
 
     if (removed.currentFile) {
       // Need to break the relation first

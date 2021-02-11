@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-const _ = require('lodash');  // works only this way
+import * as _ from 'lodash';
 
 import { ruToEn } from './transliterate/ru-to-en';
 
