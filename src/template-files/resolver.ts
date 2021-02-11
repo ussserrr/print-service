@@ -3,6 +3,7 @@ import { ParseUUIDPipe } from '@nestjs/common';
 import { FileUpload } from 'graphql-upload';
 
 import * as gqlSchema from 'src/graphql';
+import { AppGraphQLContext } from 'src/app.module';
 
 import { TemplateTypesService } from 'src/template-types/service';
 import { FindOneDto as TemplateTypesFindOneDto } from 'src/template-types/dto/find-one.output';
@@ -77,12 +78,9 @@ export class TemplateFilesResolver implements
   @Mutation('removeTemplateFile')
   async remove(
     @Args('id', ParseUUIDPipe) id: string,
-    @Context() ctx
+    @Context() ctx: AppGraphQLContext
   ): Promise<FindOneDto>
   {
-    if (!Array.isArray(ctx.warnings)) {
-      ctx.warnings = [];
-    }
     return new FindOneDto(await this.service.remove(id, ctx.warnings));
   }
 

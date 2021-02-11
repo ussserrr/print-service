@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args, Parent, Context, ResolveField } from '
 import { ParseUUIDPipe, SerializeOptions } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
+import { AppGraphQLContext } from 'src/app.module';
 
 import { FindOneDto as TemplateFilesFindOneDto } from 'src/template-files/dto/find-one.output';
 import { TemplateFilesService } from 'src/template-files/service';
@@ -114,12 +115,9 @@ export class TemplateTypesResolver implements
   async update(
     @Args('id', ParseUUIDPipe) id: string,
     @Args('data') input: UpdateDto,
-    @Context() ctx
+    @Context() ctx: AppGraphQLContext
   ): Promise<FindOneDto>
   {
-    if (!Array.isArray(ctx.warnings)) {
-      ctx.warnings = [];
-    }
     return new FindOneDto(await this.service.update(id, input, ctx.warnings));
   }
 

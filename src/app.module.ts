@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { GraphQLResponse, GraphQLRequestContext } from 'apollo-server-types';
+import { ContextFunction } from 'apollo-server-core';
 import GraphQLJSON from 'graphql-type-json';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
@@ -33,24 +34,35 @@ import { PrintService } from './print/service';
 import { PrintController } from './print/controller';
 
 
+export interface AppGraphQLContext {
+  warnings: string[];
+}
+const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
+  warnings: []
+});
+
 const graphqlConfig: GqlModuleOptions = {
+  context: contextFactory,
   formatResponse: (
     response: GraphQLResponse | null,
-    requestContext: GraphQLRequestContext<Record<string, any>>,
+    context: GraphQLRequestContext<AppGraphQLContext>,
   ): GraphQLResponse =>
   {
-    const warnings = requestContext.context.warnings;
-    if (Array.isArray(warnings) && warnings.length) {
-      if (response?.data) {
-        response.data.warnings = warnings;
-      } else if (response) {
-        response.data = { warnings };
+    // console.log('formatResponse', response);
+    const warnings = context.context.warnings;
+    if (warnings.length) {
+      if (response) {
+        const extensions = response.extensions || (response.extensions = {});
+        extensions.warnings = warnings;
       } else {
-        response = { data: { warnings } };
+        return { extensions: { warnings } };
       }
     }
-    return response || ({} as GraphQLResponse);
+    return response || {};
   },
+  // TODO: test again when multiple errors
+  // TODO: test when debug=false
+  // TODO: probably use 'extensions', too
   formatError: (error: GraphQLError): GraphQLFormattedError => {
     const errorType =
       error.extensions?.exception?.response?.error ||
@@ -58,7 +70,7 @@ const graphqlConfig: GqlModuleOptions = {
 
     let errorMessage = 'unknown error';
     if (Array.isArray(error.extensions?.exception?.response?.message)) {
-      errorMessage = error.extensions?.exception?.response?.message.join('; ');
+      errorMessage = error.extensions?.exception?.response?.message.join('; ');  // TODO: this isn't good...
     } else if (error.extensions?.exception?.response?.message) {
       errorMessage = error.extensions?.exception?.response?.message;
     } else if (error.extensions?.exception?.message) {

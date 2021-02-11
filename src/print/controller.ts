@@ -8,13 +8,13 @@ export class PrintController {
   constructor(private readonly service: PrintService) {}
 
   @Get()
-  async downloadOutput(@Query() request: RequestDto, @Res() res: Response) {
-    console.log(request);
+  async downloadOutput(@Query() query: RequestDto, @Res() res: Response) {
+    console.log(query);
     res.set({
       'Content-Type': 'application/pdf',
       // 'Content-Disposition': 'inline'
     });
-    const stream = await this.service.getPrintOutput(request.token);
+    const stream = await this.service.getPrintOutput(query.token);
     stream.pipe(res);
   }
 

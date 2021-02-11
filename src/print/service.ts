@@ -10,7 +10,6 @@ import { CompletedEventCallback, FailedEventCallback, Job, Queue } from 'bull';
 import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bull';
 
 import printConfig from 'src/config/print.config';
-import * as gqlSchema from 'src/graphql';  // we don't "expose" GraphQL to services, remember?
 
 import { PrintJob, PrintJobOutput } from './lib';
 import { ConfigType } from '@nestjs/config';
@@ -44,7 +43,7 @@ export class PrintService/* implements OnModuleDestroy*/ {
   // }
 
 
-  async print(templatePath: string, fillData?: Record<string, any>): Promise<gqlSchema.PrintOutput> {
+  async print(templatePath: string, fillData?: Record<string, any>) {
     const token = uuidv4();
 
     await new Promise<void>(async (resolve, reject) => {
