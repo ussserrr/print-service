@@ -39,8 +39,10 @@ export class TemplateFilesService {
   }
 
 
-  async create(file: FileUpload, input: CreateDto): Promise<TemplateFile> {
-    const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: [] });
+  async create(file: FileUpload, input: CreateDto): Promise<[TemplateFile, string[]]> {
+    let warnings: string[] = [];
+
+    const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: ['files'] });
 
     const title = input.title || file.filename;
     const containingPath = path.join(this.config.storageRootPath, type.owner, type.name);
@@ -59,13 +61,23 @@ export class TemplateFilesService {
       mimeType: file.mimetype
     });
 
-    created.templateType = type;
+    if (type.files.length >= this.config.filesToKeep) {
+      const oldestFile = type.files.reduce((oldest, file) =>
+        file.updatedAt.valueOf() >= oldest.updatedAt.valueOf() ? oldest : file
+      );
+      const [removed, removalWarnings] = await this.remove(oldestFile.id);
+      warnings = warnings.concat(removalWarnings);
+      warnings.push(`The oldest file has been removed: ${removed.title}`);
+    }
+
     if (input.isCurrentFileOfItsType) {
       await this.templateTypesService.update(type.id, { currentFileId: created.id });
       created.currentFileOfType = type;
     }
 
-    return created;
+    created.templateType.files.push(created);
+
+    return [created, warnings];
   }
 
 
@@ -155,15 +167,15 @@ export class TemplateFilesService {
   }
 
 
-  async remove(id: string, warnings?: string[]): Promise<TemplateFile> {
+  async remove(id: string): Promise<[TemplateFile, string[]]> {
+    const warnings: string[] = [];
+
     const removed = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
 
     if (removed.currentFileOfType) {
       // Break the relation first otherwise the deletion will fail
       await this.templateTypesService.update(removed.currentFileOfType.id, { currentFileId: null as any });
-      if (Array.isArray(warnings)) {
-        warnings.push(`Deleted file was a current one for the "${removed.currentFileOfType.title}" type`);
-      }
+      warnings.push(`Deleted file was a current one for the "${removed.currentFileOfType.title}" type`);
     }
 
     const filePath = path.join(this.config.storageRootPath, removed.templateType.owner, removed.templateType.name, removed.name);
@@ -173,7 +185,7 @@ export class TemplateFilesService {
     // Primary key is removed from the entity by the TypeORM at this point so we restore it manually.
     // Probably a bad design decision (in ORM), actually. See https://github.com/typeorm/typeorm/issues/1421
     removed.id = id;
-    return removed;
+    return [removed, warnings];
   }
 
 

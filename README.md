@@ -38,3 +38,5 @@ Create a file:
 ```
 curl -X POST -F 'operations={"query":"mutation CreateTemplateFile($file:Upload!) {\n  createTemplateFile(file:$file data:{templateTypeId:\"b1c1d8aa-5f07-4475-8719-a6dbb669b13e\"})\n {id title}}", "variables":{"file":null}}' -F 'map={"0":["variables.file"]}' -F '0=@/Users/chufyrev/Pictures/IMG_3184.JPG' http://localhost:3000/graphql
 ```
+
+https://github.com/jaydenseric/graphql-upload#tips

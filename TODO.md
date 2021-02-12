@@ -15,3 +15,4 @@
  - [ ] TypeOrm entity validation, too (class-validator)
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
  - [ ] Check/set requests timeouts (both REST/GraphQL)
+ - [ ] *Maybe* somehow declare a proper Resolver' interface (with context and references to the original interface...)

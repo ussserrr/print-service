@@ -17,7 +17,6 @@ import { CreateDto } from './dto/create.input';
 import { UpdateDto } from './dto/update.input';
 
 
-
 @Resolver('TemplateFile')
 export class TemplateFilesResolver implements
   Partial<gqlSchema.IQuery>,
@@ -34,14 +33,17 @@ export class TemplateFilesResolver implements
   }
 
   // gqlSchema.IMutation
-  @Mutation()
-  async createTemplateFile(
-    @Args('file') filePromise: FileUpload,
-    @Args('data') input: CreateDto
+  @Mutation('createTemplateFile')
+  async create(
+    @Args('file') fileUpload: FileUpload,
+    @Args('data') input: CreateDto,
+    @Context() ctx: AppGraphQLContext
   ): Promise<FindOneDto>
   {
-    const file = await filePromise;
-    return new FindOneDto(await this.service.create(file, input));
+    const uploadedFile = await fileUpload;
+    const [created, warnings] = await this.service.create(uploadedFile, input);
+    ctx.warnings = ctx.warnings.concat(warnings);
+    return new FindOneDto(created);
   }
 
   // gqlSchema.IQuery
@@ -51,9 +53,9 @@ export class TemplateFilesResolver implements
     @Args('options') options: RequestOptionsDto
   ): Promise<PagedOutputDto>
   {
-    const [ data, count ] = await this.service.findAll(filter, options);
+    const [ files, count ] = await this.service.findAll(filter, options);
     return new PagedOutputDto({
-      items: data,
+      items: files,
       total: count
     });
   }
@@ -81,7 +83,9 @@ export class TemplateFilesResolver implements
     @Context() ctx: AppGraphQLContext
   ): Promise<FindOneDto>
   {
-    return new FindOneDto(await this.service.remove(id, ctx.warnings));
+    const [removed, warnings] = await this.service.remove(id);
+    ctx.warnings = ctx.warnings.concat(warnings);
+    return new FindOneDto(removed);
   }
 
 }
