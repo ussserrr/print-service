@@ -16,3 +16,6 @@
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
  - [ ] Check/set requests timeouts (both REST/GraphQL)
  - [ ] *Maybe* somehow declare a proper Resolver' interface (with context and references to the original interface...)
+       https://stackoverflow.com/a/52294058/7782943
+       https://stackoverflow.com/questions/60067100/why-is-the-infer-keyword-needed-in-typescript
+ - [ ] Translate errors, warnings so the client can display them to end-user

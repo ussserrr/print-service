@@ -195,4 +195,10 @@ export class TemplateFilesService {
     return this.printService.print(filePath, data);
   }
 
+  async download(id: string): Promise<fs.ReadStream> {
+    const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
+    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
+    return fs.createReadStream(filePath);
+  }
+
 }

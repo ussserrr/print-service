@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 
-import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
+
+import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 
 import { CompletedEventCallback, FailedEventCallback, Job, Queue } from 'bull';
 import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bull';
@@ -11,7 +12,6 @@ import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bul
 import printConfig from 'src/config/print.config';
 
 import { PrintJob, PrintJobOutput } from './lib';
-import { ConfigType } from '@nestjs/config';
 
 
 @Injectable()
@@ -40,7 +40,6 @@ export class PrintService/* implements OnModuleDestroy*/ {
   //   //   console.error(error);
   //   // }
   // }
-
 
   async print(templatePath: string, fillData?: Record<string, any>) {
     const token = uuidv4();

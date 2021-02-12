@@ -40,3 +40,5 @@ curl -X POST -F 'operations={"query":"mutation CreateTemplateFile($file:Upload!)
 ```
 
 https://github.com/jaydenseric/graphql-upload#tips
+
+TypeORM i18n notes: https://github.com/typeorm/typeorm/issues/1612
