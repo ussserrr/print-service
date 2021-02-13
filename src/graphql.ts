@@ -94,7 +94,7 @@ export interface TemplateTypesRequestOptions {
 
 export interface TemplateFile {
     id: string;
-    title: string;
+    title?: string;
     mimeType: string;
     templateType: TemplateType;
     isCurrentFileOfItsType?: boolean;

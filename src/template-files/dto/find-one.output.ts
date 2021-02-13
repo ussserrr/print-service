@@ -7,7 +7,7 @@ import { FindOneDto as TemplateTypeFindOneDto } from 'src/template-types/dto/fin
 
 export class FindOneDto implements gqlSchema.TemplateFile {
   @Expose() id: string;
-  @Expose() title: string;
+  @Expose() title?: string;
   @Expose() mimeType: string;
   @Expose() createdAt: Date;
   @Expose() updatedAt: Date;

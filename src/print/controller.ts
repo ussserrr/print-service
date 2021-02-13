@@ -19,12 +19,12 @@ export class PrintController {
     @Param('token', ParseUUIDPipe) token: string,
     @Res() res: Response
   ) {
-    const stream = await this.service.getPrintOutput(token);
-    res.set({
-      'Content-Type': 'application/pdf',
-      // 'Content-Disposition': 'inline'
+    const [path, name] = await this.service.getPrintOutput(token);
+    res.sendFile(path, {
+      headers: {
+        'Content-Disposition': `inline; filename=${name}`
+      }
     });
-    stream.pipe(res);
   }
 
   @Get('raw/:fileId')
@@ -32,7 +32,7 @@ export class PrintController {
     @Param('fileId', ParseUUIDPipe) fileId: string,
     @Res() res: Response
   ) {
-    const stream = await this.templateFilesService.download(fileId).catch(error => {
+    const filePath = await this.templateFilesService.download(fileId).catch(error => {
       if (error.name === 'EntityNotFound') {
         throw new NotFoundException(`TemplateFile with id="${fileId}" not found`);
       } else if (error.message) {
@@ -41,10 +41,7 @@ export class PrintController {
         throw error;
       }
     });
-    res.set({
-      'Content-Type': 'application/octet-stream'
-    });
-    stream.pipe(res);
+    res.download(filePath);
   }
 
 }

@@ -189,16 +189,16 @@ export class TemplateFilesService {
   }
 
 
-  async print(id: string, data?: Record<string, any>) {
-    const file = await this.repository.findOneOrFail(id, { relations: ['templateType', 'currentFileOfType'] });
-    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
-    return this.printService.print(filePath, data);
-  }
-
-  async download(id: string): Promise<fs.ReadStream> {
+  async print(id: string, fillData?: Record<string, any>) {
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
     const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
-    return fs.createReadStream(filePath);
+    return this.printService.print(filePath, fillData);
+  }
+
+  async download(id: string): Promise<string> {
+    const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
+    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
+    return filePath;
   }
 
 }

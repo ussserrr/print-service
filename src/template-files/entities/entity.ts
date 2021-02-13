@@ -19,7 +19,7 @@ export class TemplateFile {
   mimeType: string;
 
   @Column({ nullable: true })  // nullable false by default
-  title: string;
+  title?: string;
 
   @OneToOne(() => TemplateType, currentFileOfType => currentFileOfType.currentFile, {
     nullable: true

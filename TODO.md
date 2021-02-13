@@ -19,3 +19,4 @@
        https://stackoverflow.com/a/52294058/7782943
        https://stackoverflow.com/questions/60067100/why-is-the-infer-keyword-needed-in-typescript
  - [ ] Translate errors, warnings so the client can display them to end-user
+ - [ ] Maybe detect that this template has been printed with this data already so return from cache (i.e. store the hash)

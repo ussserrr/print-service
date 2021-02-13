@@ -26,7 +26,7 @@ import { TemplateTypesModule } from 'src/template-types/module';
       }],
     }),
     forwardRef(() => TemplateFilesModule),
-    forwardRef(() => TemplateTypesModule)
+    forwardRef(() => TemplateTypesModule)  // need this for successful resolutions
     // CacheModule.registerAsync({
     //   imports: [ConfigModule.forFeature(cacheConfig)],
     //   inject: [cacheConfig.KEY],

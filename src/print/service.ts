@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as fs from 'fs';
 
 import { DateTime } from 'luxon';
@@ -85,10 +86,13 @@ export class PrintService/* implements OnModuleDestroy*/ {
   }
 
 
-  async getPrintOutput(token: string): Promise<fs.ReadStream> {
+  async getPrintOutput(token: string): Promise<[string, string]> {
     const job = await this.queue.getJob(token);
     if (job) {
-      return fs.createReadStream(job.returnvalue?.path);
+      return [
+        job.returnvalue?.path,
+        path.basename(job.data.templatePath, path.extname(job.data.templatePath)) + '.pdf'
+      ];
     } else {
       throw new NotFoundException('No job found for the given token');
     }

@@ -3,7 +3,7 @@ scalar Upload
 
 type TemplateFile {
   id: ID!
-  title: String!
+  title: String
   mimeType: String!
   templateType: TemplateType!
   isCurrentFileOfItsType: Boolean
