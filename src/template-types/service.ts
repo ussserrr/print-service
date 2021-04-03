@@ -90,7 +90,9 @@ export class TemplateTypesService {
   }
 
 
-  async update(id: string, input: UpdateDto, warnings?: string[]): Promise<TemplateType> {
+  async update(id: string, input: UpdateDto): Promise<[TemplateType, string[]]> {
+    const warnings: string[] = [];
+
     const type = await this.repository.findOneOrFail(id, { relations: ['currentFile'] });
 
     if (Object.values(input).some(v => v !== undefined)) {
@@ -114,12 +116,7 @@ export class TemplateTypesService {
         if (fileToMakeCurrent.templateType.id === id) {
           updateData.currentFile = fileToMakeCurrent;
         } else {
-          const msg = `currentFileId="${input.currentFileId}" doesn't belong to the "${type.title}" files`;
-          if (Array.isArray(warnings)) {
-            warnings.push(msg);
-          } else {
-            console.warn(msg);  // fallback: server log
-          }
+          warnings.push(`currentFileId="${input.currentFileId}" doesn't belong to the "${type.title}" files`);
         }
       } else if (input.currentFileId === null && type.currentFile) {
         updateData.currentFile = null as any;
@@ -130,7 +127,7 @@ export class TemplateTypesService {
       console.warn(`No properties to change were been provided`);
     }
 
-    return this.findOne(id);
+    return [await this.findOne(id), warnings];
   }
 
 

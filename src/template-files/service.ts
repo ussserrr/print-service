@@ -40,7 +40,12 @@ export class TemplateFilesService {
 
 
   async create(file: FileUpload, input: CreateDto): Promise<[TemplateFile, string[]]> {
-    let warnings: string[] = [];
+    const warnings: string[] = [];
+
+    // TODO: probably take out to the config (array of available pairs "extension/mime")
+    if (file.mimetype !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || !file.filename.toLowerCase().endsWith('.docx')) {
+      throw new Error('Template file should be a DOCX document');
+    }
 
     const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: ['files'] });
 
@@ -66,7 +71,7 @@ export class TemplateFilesService {
         file.updatedAt.valueOf() >= oldest.updatedAt.valueOf() ? oldest : file
       );
       const [removed, removalWarnings] = await this.remove(oldestFile.id);
-      warnings = warnings.concat(removalWarnings);
+      warnings.push(...removalWarnings);
       warnings.push(`The oldest file has been removed: ${removed.title}`);
     }
 

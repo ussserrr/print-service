@@ -23,6 +23,7 @@ import printConfig from 'src/config/print.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+import { TemplateFile } from './template-files/entities/entity';
 import { TemplateFilesModule } from './template-files/module';
 import { TemplateFilesService } from './template-files/service';
 
@@ -36,7 +37,10 @@ import { PrintController } from './print/controller';
 
 export interface AppGraphQLContext {
   warnings: string[];
-  templateTypeIsRemoved?: boolean;
+  templateType?: {
+    isRemoved: boolean;
+    filesOfRemoved: TemplateFile[]
+  }
 }
 const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
   warnings: []

@@ -1,22 +1,23 @@
 # TODOs list
 
  - [±] check against the most strict TS configuration
- - [ ] return `leftJoin`ed `FindOne`s
+ - [ ] use `leftJoin` for `FindOne`s?
  - [ ] logging (debug/dev/prod mode)
  - [ ] check DB relations again (uniq `currentFile`s, etc.)
  - [ ] check dates (emulate another timezone)
- - [+] customize exception messages (coming from GraphQL, TypeORM)
- - [ ] pass relations when needed and handle in resolvers
- - [ ] throw errors where needed
- - [ ] limit available file types (and names, e.g. OS-reserved ones)
+ - [x] customize exception messages (coming from GraphQL, TypeORM)
+ - [x] limit available file types (and names, e.g. OS-reserved ones)
  - [ ] handle cases when the file was removed outside of the app/DB (i.e. directly in filesystem)
- - [ ] reset `package-lock.json` in the end (as we're messing with Node versions)
- - [ ] limit number of files on the drive (check for creation and update)
- - [ ] TypeOrm entity validation, too (class-validator)
+ - [ ] reset `package-lock.json` in the end (as we're messing with Node versions (and to upgrade as well))
+ - [x] limit number of files on the drive (check for creation and update)
+ - [ ] TypeOrm entity validation, too (class-validator)?
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
  - [ ] Check/set requests timeouts (both REST/GraphQL)
  - [ ] *Maybe* somehow declare a proper Resolver' interface (with context and references to the original interface...)
        https://stackoverflow.com/a/52294058/7782943
        https://stackoverflow.com/questions/60067100/why-is-the-infer-keyword-needed-in-typescript
- - [ ] Translate errors, warnings so the client can display them to end-user
+       IMPORTANT! We can actually inject the context "globally" (on resolver/service level) - https://docs.nestjs.com/fundamentals/injection-scopes. Or (probably better) we can implement a proper standalone middleware (interceptor or smth) that takes service' return value in form `[result, [warnings]]` and attaches an array to the context's property
+ - [ ] Translate errors, warnings so the client can display them to end-user (e.g. TypeORM errors shouldn't be exposed actually... In theory, we should catch them anyway, and so then we can throw custom (and therefore translated) messages)
  - [ ] Maybe detect that this template has been printed with this data already so return from cache (i.e. store the hash)
+ - [ ] Replace as much strings as possible (by enums or smth) (like resolvers names, 'print', etc.)
+ - [ ] Build a dependency graph (to analyze usage, docs)

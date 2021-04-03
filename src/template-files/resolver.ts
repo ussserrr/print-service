@@ -1,5 +1,5 @@
-import { Resolver, Query, Mutation, Args, Parent, Context, ResolveField } from '@nestjs/graphql';
-import { ParseUUIDPipe } from '@nestjs/common';
+import { Resolver, Query, Mutation, Args, Parent, ResolveField, CONTEXT } from '@nestjs/graphql';
+import { Inject, Injectable, ParseUUIDPipe, Scope } from '@nestjs/common';
 import { FileUpload } from 'graphql-upload';
 
 import * as gqlSchema from 'src/graphql';
@@ -17,6 +17,7 @@ import { CreateDto } from './dto/create.input';
 import { UpdateDto } from './dto/update.input';
 
 
+@Injectable({ scope: Scope.REQUEST })
 @Resolver('TemplateFile')
 export class TemplateFilesResolver implements
   Partial<gqlSchema.IQuery>,
@@ -24,25 +25,25 @@ export class TemplateFilesResolver implements
 {
   constructor(
     private readonly service: TemplateFilesService,
-    private readonly templateTypesService: TemplateTypesService
+    private readonly templateTypesService: TemplateTypesService,
+    @Inject(CONTEXT) private readonly requestContext: AppGraphQLContext
   ) {}
 
   @ResolveField('templateType')
-  async getTemplateType(@Parent() file: FindOneDto): Promise<TemplateTypesFindOneDto> {
+  async getTemplateTypeOf(@Parent() file: FindOneDto): Promise<TemplateTypesFindOneDto> {
     return new TemplateTypesFindOneDto(await this.templateTypesService.findOne(file.templateType.id));
   }
 
   // gqlSchema.IMutation
-  @Mutation('createTemplateFile')
-  async create(
+  @Mutation()
+  async createTemplateFile(
     @Args('file') fileUpload: FileUpload,
-    @Args('data') input: CreateDto,
-    @Context() ctx: AppGraphQLContext
+    @Args('data') input: CreateDto
   ): Promise<FindOneDto>
   {
     const uploadedFile = await fileUpload;
     const [created, warnings] = await this.service.create(uploadedFile, input);
-    ctx.warnings = ctx.warnings.concat(warnings);
+    this.requestContext.warnings.push(...warnings);
     return new FindOneDto(created);
   }
 
@@ -76,15 +77,11 @@ export class TemplateFilesResolver implements
     return new FindOneDto(await this.service.update(id, input));
   }
 
-  // This is a part of gqlSchema.IQuery as well but we lose the exact signature introducing the @Context()
-  @Mutation('removeTemplateFile')
-  async remove(
-    @Args('id', ParseUUIDPipe) id: string,
-    @Context() ctx: AppGraphQLContext
-  ): Promise<FindOneDto>
-  {
+  // gqlSchema.IQuery
+  @Mutation()
+  async removeTemplateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     const [removed, warnings] = await this.service.remove(id);
-    ctx.warnings = ctx.warnings.concat(warnings);
+    this.requestContext.warnings.push(...warnings);
     return new FindOneDto(removed);
   }
 
