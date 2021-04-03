@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Query, Res } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Res } from '@nestjs/common';
 
 import { Response } from 'express';
 
@@ -36,7 +36,7 @@ export class PrintController {
       if (error.name === 'EntityNotFound') {
         throw new NotFoundException(`TemplateFile with id="${fileId}" not found`);
       } else if (error.message) {
-        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);  // TODO: probably we shouldn't expose an actual reason to the world for security purposes (neither for REST or GraphQL APIs)
+        throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
       } else {
         throw error;
       }

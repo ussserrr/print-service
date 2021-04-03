@@ -90,6 +90,9 @@ export class TemplateTypesService {
   }
 
 
+  // Note:
+  // Technically, such methods are not atomic - there are not only a DB updates but file-system changes.
+  // So in case of some error occuring there is a possibility for actions to be partially applied
   async update(id: string, input: UpdateDto): Promise<[TemplateType, string[]]> {
     const warnings: string[] = [];
 
@@ -107,7 +110,6 @@ export class TemplateTypesService {
             path.join(containingPath, newName)
           );
           updateData.name = newName;
-          // TODO: what if an error will occur before flushing the record? Need to consider some rollback mechanics
         }
       }
 

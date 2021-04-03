@@ -6,7 +6,6 @@ import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
-import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { GraphQLResponse, GraphQLRequestContext } from 'apollo-server-types';
 import { ContextFunction } from 'apollo-server-core';
 import GraphQLJSON from 'graphql-type-json';
@@ -53,7 +52,6 @@ const graphqlConfig: GqlModuleOptions = {
     ctx: GraphQLRequestContext<AppGraphQLContext>,
   ): GraphQLResponse =>
   {
-    // console.log('formatResponse', response);
     const warnings = ctx.context.warnings;
     if (warnings.length) {
       if (response) {
@@ -64,36 +62,6 @@ const graphqlConfig: GqlModuleOptions = {
       }
     }
     return response || {};
-  },
-  // TODO: test again when there are multiple errors (e.g. graphql validation errors)
-  // TODO: test when debug=false
-  // TODO: probably use 'extensions', too
-  formatError: (error: GraphQLError): GraphQLFormattedError => {
-    const errorType =
-      error.extensions?.exception?.response?.error ||
-      'Error';
-
-    let errorMessage = 'unknown error';
-    if (Array.isArray(error.extensions?.exception?.response?.message)) {
-      errorMessage = error.extensions?.exception?.response?.message.join('; ');  // TODO: this isn't good...
-    } else if (error.extensions?.exception?.response?.message) {
-      errorMessage = error.extensions?.exception?.response?.message;
-    } else if (error.extensions?.exception?.message) {
-      errorMessage = error.extensions?.exception?.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    let message = `${errorType}: ${errorMessage}`;
-    if (Array.isArray(error.path) && error.path.length) {
-      // Sometimes present when walking GraphQL graph
-      message = message + ` (${error.path.join('.')})`;
-    }
-
-    const formattedError: GraphQLFormattedError = {
-      message: message
-    };
-    return formattedError;
   },
   typePaths: ['./**/*.graphql'],
   resolvers: { JSON: GraphQLJSON },
