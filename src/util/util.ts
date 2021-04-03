@@ -26,7 +26,7 @@ async function getUniqueNameFromTitle(parentPath: string, title: string, pathTyp
 
   let name = ruToEn(basename!)  // transliterate
     .replace(/[- ,.:]/g, '_')  // replace some common symbols to _
-    .replace(/[^\w]/g, '')  // leave only alphanumerical and _
+    .replace(/[^\w]/g, '')  // leave only alphanumeric and _
     .toLowerCase();
 
   const nameExists = await new Promise<boolean>(resolve =>

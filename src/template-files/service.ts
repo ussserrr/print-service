@@ -42,9 +42,9 @@ export class TemplateFilesService {
   async create(file: FileUpload, input: CreateDto): Promise<[TemplateFile, string[]]> {
     const warnings: string[] = [];
 
-    // TODO: probably take out to the config (array of available pairs "extension/mime")
-    if (file.mimetype !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || !file.filename.toLowerCase().endsWith('.docx')) {
-      throw new Error('Template file should be a DOCX document');
+    const fileType = this.config.allowedFileTypes.find(t => t.mime === file.mimetype);
+    if (fileType === undefined) {
+      throw new Error('Template file should be one of: ' + this.config.allowedFileTypes.map(t => t.extension).join(', '));
     }
 
     const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: ['files'] });

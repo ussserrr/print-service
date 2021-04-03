@@ -47,7 +47,7 @@ export class TemplateTypesResolver implements
       // particularly type-safe so consider it as a little "hack". Also the client cannot
       // (and should not) request nested fields as any try to access these objects will fail
       return new TemplateFilesPageDto({
-        items: this.requestContext.templateType?.filesOfRemoved,  // TODO: are we completely unable to do anything with this?
+        items: this.requestContext.templateType?.filesOfRemoved,
         total: this.requestContext.templateType?.filesOfRemoved.length
       });
     }

@@ -13,7 +13,7 @@
  - [ ] TypeOrm entity validation, too (class-validator)?
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
  - [ ] Check/set requests timeouts (both REST/GraphQL)
- - [ ] *Maybe* somehow declare a proper Resolver' interface (with context and references to the original interface...)
+ - [x] *Maybe* somehow declare a proper Resolver' interface (with context and references to the original interface...)
        https://stackoverflow.com/a/52294058/7782943
        https://stackoverflow.com/questions/60067100/why-is-the-infer-keyword-needed-in-typescript
        IMPORTANT! We can actually inject the context "globally" (on resolver/service level) - https://docs.nestjs.com/fundamentals/injection-scopes. Or (probably better) we can implement a proper standalone middleware (interceptor or smth) that takes service' return value in form `[result, [warnings]]` and attaches an array to the context's property
@@ -21,3 +21,4 @@
  - [ ] Maybe detect that this template has been printed with this data already so return from cache (i.e. store the hash)
  - [ ] Replace as much strings as possible (by enums or smth) (like resolvers names, 'print', etc.)
  - [ ] Build a dependency graph (to analyze usage, docs)
+ - [ ] Authorization
