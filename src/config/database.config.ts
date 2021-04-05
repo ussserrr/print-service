@@ -7,7 +7,7 @@ import { TemplateType } from 'src/template-types/entities/entity';
 
 const config: TypeOrmModuleOptions = {
   type: 'postgres',
-  host: 'localhost',
+  host: process.env.POSTGRES_HOST,
   username: 'chufyrev',
   database: 'chufyrev',
   synchronize: true,

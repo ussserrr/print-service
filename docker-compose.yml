@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  app:
+    image: print-service
+    command: npm run start:dev
+    ports:
+      - 3000:3000
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    environment:
+      STORAGE_ROOT_PATH: /usr/src/app/storage
+      POSTGRES_HOST: host.docker.internal
+      REDIS_HOST: host.docker.internal

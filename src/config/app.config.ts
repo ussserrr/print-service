@@ -1,7 +1,10 @@
+import * as path from 'path';
+
 import { registerAs } from '@nestjs/config';
 
+
 const config = {
-  storageRootPath: '/Users/chufyrev/Documents/taxi21/print-service/storage',
+  storageRootPath: process.env.STORAGE_ROOT_PATH || path.join(process.cwd(), 'storage'),
   filesToKeep: 5,
   allowedFileTypes: [{
     extension: 'DOCX',
