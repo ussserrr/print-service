@@ -42,3 +42,42 @@ curl -X POST -F 'operations={"query":"mutation CreateTemplateFile($file:Upload!)
 https://github.com/jaydenseric/graphql-upload#tips
 
 TypeORM i18n notes: https://github.com/typeorm/typeorm/issues/1612
+
+Build the Docker image:
+```
+docker build -t print-service .
+```
+
+Run the development Docker container:
+```
+docker-compose up
+```
+
+Install Nginx ingress for Kubernetes: https://kubernetes.github.io/ingress-nginx/deploy/
+
+Deploy the development Kubernetes cluster:
+```
+kubectl apply -f k8s
+```
+
+To access the cluster use port 80 (e.g. http://localhost:80/graphql) (3000 for "raw" Docker container).
+
+Shutdown this cluster:
+```
+kubectl delete -f k8s
+```
+
+Connect to streaming logs:
+```
+kubectl logs -f -lapp=print-service --all-containers=true
+```
+
+List pods:
+```
+kubectl get pods
+```
+
+Execute the command inside the particular pod:
+```
+kubectl exec print-service-deployment-797f9f96b6-847qc -- ls
+```

@@ -102,12 +102,26 @@ export class PrintQueueConsumer {
     @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @InjectQueue('print') private readonly queue: Queue
   ) {
-    // From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
-    // (i.e. it will be "added" but no duplicates will be planted)
-    queue.add('purge-queue', null, {
-      repeat: { every: config.purgeQueueJob.repeatEvery },
-      removeOnComplete: true
-    });
+    queue.getFailed()
+      .then(failedJobs => failedJobs.filter(job =>
+        job.name === 'purge-queue' &&
+        job.failedReason === ('Missing process handler for job type ' + 'purge-queue')
+      ))
+      .then(purgeQueueFailedJobs => Promise.all(purgeQueueFailedJobs.map(job => {
+        console.log('failed purge-queue job', job.id);
+        return job.remove();
+      })))
+      // From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
+      // (i.e. it will be "added" but no duplicates will be planted)
+      .then(() => queue.add('purge-queue', null, {
+        repeat: { every: config.purgeQueueJob.repeatEvery },
+        removeOnComplete: true
+      }));
+
+    // queue.add('purge-queue', null, {
+    //   repeat: { every: config.purgeQueueJob.repeatEvery },
+    //   removeOnComplete: true
+    // });
   }
 
   // @OnGlobalQueueError()
@@ -118,7 +132,10 @@ export class PrintQueueConsumer {
   @OnGlobalQueueCompleted()
   async onGlobalCompleted(jobId: number, result: any) {  // result: string for print job
     const job = await this.queue.getJob(jobId);
-    if (job?.id) {
+    if (
+      job?.name === 'print' &&
+      typeof job.returnvalue?.path === 'string' && job.returnvalue.path.length
+    ) {
       // TODO: notify the client here
       console.log('(Global) on completed: job ', job);
     }
@@ -135,21 +152,8 @@ export class PrintQueueConsumer {
   @Process('purge-queue')
   async purgeQueue(job: Job) {
     console.log('purge-queue job is started, pid:', process.pid);
-
-    const doneJobs = await this.queue.getJobs(['completed', 'failed']);
-
-    await Promise.all(doneJobs
-      .filter(job =>
-        job.name === 'purge-queue' &&
-        job.failedReason === ('Missing process handler for job type ' + 'purge-queue')
-      )
-      .map(job => {
-        console.log('failed purge-queue job', job.id);
-        return job.remove();
-      })
-    );
-
-    await Promise.all(doneJobs
+    const completedJobs = await this.queue.getCompleted();
+    await Promise.all(completedJobs
       .filter(job =>
         job.name === 'print' &&
         typeof job.returnvalue?.path === 'string' && job.returnvalue.path.length &&
