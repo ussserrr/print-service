@@ -50,7 +50,7 @@ export class TemplateFilesService {
     const type = await this.templateTypesService.findOne(input.templateTypeId, { relations: ['files'] });
 
     const title = input.title || file.filename;
-    const containingPath = path.join(this.config.storageRootPath, type.owner, type.name);
+    const containingPath = path.join(this.config.storagePath, type.owner, type.name);
     const name = await getUniqueNameFromTitle(containingPath, title, 'file', path.extname(file.filename));
     await new Promise((resolve, reject) =>
       file.createReadStream()
@@ -146,7 +146,7 @@ export class TemplateFilesService {
       const updateData: Partial<TemplateFile & UpdateDto> = Object.assign({ id }, input);
 
       if (input.title && input.title !== file.title) {
-        const containingPath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name);
+        const containingPath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name);
         const newName = await getUniqueNameFromTitle(containingPath, input.title, 'file', path.extname(file.name));
         if (newName !== file.name) {  // title may change but transliterated name don't
           fs.renameSync(
@@ -183,7 +183,7 @@ export class TemplateFilesService {
       warnings.push(`Deleted file was a current one for the "${removed.currentFileOfType.title}" type`);
     }
 
-    const filePath = path.join(this.config.storageRootPath, removed.templateType.owner, removed.templateType.name, removed.name);
+    const filePath = path.join(this.config.storagePath, removed.templateType.owner, removed.templateType.name, removed.name);
     fs.unlinkSync(filePath);
 
     await this.repository.remove(removed);
@@ -196,13 +196,13 @@ export class TemplateFilesService {
 
   async print(id: string, fillData?: Record<string, any>) {
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
-    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
+    const filePath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name, file.name);
     return this.printService.print(filePath, fillData);
   }
 
   async download(id: string): Promise<string> {
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
-    const filePath = path.join(this.config.storageRootPath, file.templateType.owner, file.templateType.name, file.name);
+    const filePath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name, file.name);
     return filePath;
   }
 

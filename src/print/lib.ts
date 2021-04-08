@@ -75,7 +75,10 @@ export function fillTemplate(inputPath: string, fillData: Record<string, any>): 
   // buf is a nodejs buffer, you can either write it to a file or do anything else with it.
   const docxBuffer: Buffer = doc.getZip().generate({ type: 'nodebuffer' });
 
-  const tempFile = temp.fileSync({ postfix: '.docx' });
+  const tempFile = temp.fileSync({
+    postfix: '.docx',
+    tmpdir: process.env.PRINT_CACHE_PATH  // will fallback to the system one if not present
+  });
   fs.writeFileSync(tempFile.fd, docxBuffer);
 
   return tempFile;
@@ -84,15 +87,19 @@ export function fillTemplate(inputPath: string, fillData: Record<string, any>): 
 
 export function renderToPDF(doc: temp.FileResult, timeout?: number) {
   const { dir, name } = path.parse(doc.name);
-  try {
-    // TODO: only one instance of soffice can be started at a single moment
-    child_process.execSync(`soffice --invisible --headless --convert-to pdf --outdir ${dir} ${doc.name}`, {
-      timeout: timeout ?? (30 * 1000)
-    });
-  } catch (error) {
-    throw error;
-  } finally {
-    doc.removeCallback();  // we don't need the .docx file anymore
-  }
-  return path.join(dir, name + '.pdf');
+  // Use async version of the child_process.exec because the blocking one is causing the stack overflow
+  // error (weird). The async one cannot distinguish the timeout error from other SIGKILL-caused
+  // termination, though
+  return new Promise<string>((resolve, reject) => child_process.exec(
+    `soffice --invisible --headless --convert-to pdf --outdir ${dir} ${doc.name}`,
+    { timeout: timeout ?? (30 * 1000) },
+    (error, stdout, stderr) => {
+      doc.removeCallback();  // we don't need the .docx file anymore, don't wait and remove it now
+      if (error) {
+        reject(error);
+      } else {
+        resolve(path.join(dir, name + '.pdf'));
+      }
+    })
+  );
 }

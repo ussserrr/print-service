@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: print-service-deployment
+  labels:
+    app: print-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: print-service
+  template:
+    metadata:
+      labels:
+        app: print-service
+    spec:
+      containers:
+      - name: print-service
+        image: print-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - mountPath: /usr/src/app
+          name: app-src
+        env:
+          - name: STORAGE_PATH
+            value: /usr/src/app/storage
+          - name: PRINT_CACHE_PATH
+            value: $(STORAGE_PATH)/_tmp
+          - name: POSTGRES_HOST
+            value: host.docker.internal
+          - name: REDIS_HOST
+            value: host.docker.internal
+      volumes:
+      - name: app-src
+        hostPath:
+          # directory location on host
+          path: /Users/chufyrev/Documents/taxi21/print-service
+          # this field is optional
+          type: Directory

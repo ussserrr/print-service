@@ -127,12 +127,12 @@ export class AppModule implements OnModuleInit {
 
   onModuleInit() {
     try {
-      fs.accessSync(this.config.storageRootPath, fs.constants.F_OK);
+      fs.accessSync(this.config.storagePath, fs.constants.F_OK);
     } catch {
-      console.info(`app.config.storageRootPath path (${this.config.storageRootPath}) doesn't exist, creating one...`);
-      fs.mkdirSync(this.config.storageRootPath, { recursive: true });
+      console.info(`app.config.storagePath path (${this.config.storagePath}) doesn't exist, creating one...`);
+      fs.mkdirSync(this.config.storagePath, { recursive: true });
     }
     // Check we have necessary file-system permissions (read/write)
-    fs.accessSync(this.config.storageRootPath, fs.constants.R_OK | fs.constants.W_OK);
+    fs.accessSync(this.config.storagePath, fs.constants.R_OK | fs.constants.W_OK);
   }
 }

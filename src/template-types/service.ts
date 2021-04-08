@@ -38,7 +38,7 @@ export class TemplateTypesService {
 
 
   async create(input: CreateDto): Promise<TemplateType> {
-    const containingPath = path.join(this.config.storageRootPath, input.owner);
+    const containingPath = path.join(this.config.storagePath, input.owner);
     const name = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
     // In case 'owner' folder doesn't exist yet we use 'recursive=true'
     fs.mkdirSync(path.join(containingPath, name), { recursive: true });
@@ -102,7 +102,7 @@ export class TemplateTypesService {
       const updateData: Partial<TemplateType & UpdateDto> = Object.assign({ id }, input);
 
       if (input.title) {
-        const containingPath = path.join(this.config.storageRootPath, type.owner);
+        const containingPath = path.join(this.config.storagePath, type.owner);
         const newName = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
         if (newName !== type.name) {  // title may change but transliterated name don't
           fs.renameSync(
@@ -143,7 +143,7 @@ export class TemplateTypesService {
       await this.repository.save({ id, currentFile: null as any });
     }
     await this.filesRepository.remove(removed.files);
-    rimraf.sync(path.join(this.config.storageRootPath, removed.owner, removed.name));
+    rimraf.sync(path.join(this.config.storagePath, removed.owner, removed.name));
 
     await this.repository.remove(removed);
 

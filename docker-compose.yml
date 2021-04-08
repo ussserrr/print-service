@@ -10,6 +10,7 @@ services:
     volumes:
       - .:/usr/src/app
     environment:
-      STORAGE_ROOT_PATH: /usr/src/app/storage
+      STORAGE_PATH: /usr/src/app/storage
+      PRINT_CACHE_PATH: /usr/src/app/storage/_tmp  # store at the storage, too
       POSTGRES_HOST: host.docker.internal
       REDIS_HOST: host.docker.internal

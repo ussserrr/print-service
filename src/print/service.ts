@@ -7,8 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 
-import { CompletedEventCallback, FailedEventCallback, Job, Queue } from 'bull';
-import { InjectQueue, OnGlobalQueueError, Process, Processor } from '@nestjs/bull';
+import { Job, Queue } from 'bull';
+import { InjectQueue, OnGlobalQueueCompleted, OnGlobalQueueFailed, Process, Processor } from '@nestjs/bull';
 
 import printConfig from 'src/config/print.config';
 
@@ -23,63 +23,54 @@ export class PrintService/* implements OnModuleDestroy*/ {
     @InjectQueue('print') private readonly queue: Queue<PrintJob>
   ) {}
 
-  // async onModuleDestroy() {
-  //   console.log('onModuleDestroy aaa');
-  //   // try {
-  //     const purgeQueueJob = await this.queue.getRepeatableJobs().then(repeatableJobs =>
-  //       repeatableJobs.find(j => j.name === 'purge-queue')
-  //     );
-  //     console.log('purgeQueueJob', purgeQueueJob);
-  //     if (purgeQueueJob) {
-  //       await this.queue.removeRepeatableByKey(purgeQueueJob.key)
-  //       .then(() => console.log(purgeQueueJob.key, 'was removed'));
-  //     } else {
-  //       console.warn('purge-queue job not found');
-  //     }
-  //     await this.queue.close();
-  //   // } catch (error) {
-  //   //   console.error(error);
-  //   // }
-  // }
-
   async print(templatePath: string, fillData?: Record<string, any>) {
     const token = uuidv4();
 
-    await new Promise<void>(async (resolve, reject) => {
-      // Prepare listeners before adding a job to register them faster
-      const onCompleted: CompletedEventCallback<PrintJob> = (completedJob: Job<PrintJob>, result: PrintJobOutput) => {
-        if (completedJob.id === token) {
-          console.log('completed');
-          if (result.path) {
-            resolve();
-          } else {
-            reject(new Error('No output from the print job'));
-          }
-          this.queue.removeListener('completed', onCompleted);
-          this.queue.removeListener('failed', onFailed);
-          console.log('listeners removed');
-        }
-      };
-      const onFailed: FailedEventCallback<PrintJob> = (failedJob: Job<PrintJob>, reason: Error) => {
-        if (failedJob.id === token) {
-          reject(reason);
-          this.queue.removeListener('failed', onFailed);
-          this.queue.removeListener('completed', onCompleted);
-          console.log('listeners removed');
-        }
-      };
+    // await new Promise<void>(async (resolve, reject) => {
+    //   // Prepare listeners before adding a job to register them faster
+    //   const onCompleted: CompletedEventCallback<PrintJob> = (completedJob: Job<PrintJob>, result: PrintJobOutput) => {
+    //     if (completedJob.id === token) {
+    //       console.log('completed', 'pid:', process.pid);
+    //       if (result.path) {
+    //         resolve();
+    //       } else {
+    //         reject(new Error('No output from the print job'));
+    //       }
+    //       this.queue.removeListener('completed', onCompleted);
+    //       this.queue.removeListener('failed', onFailed);
+    //       console.log('listeners removed');
+    //     }
+    //   };
+    //   const onFailed: FailedEventCallback<PrintJob> = (failedJob: Job<PrintJob>, reason: Error) => {
+    //     if (failedJob.id === token) {
+    //       reject(reason);
+    //       this.queue.removeListener('failed', onFailed);
+    //       this.queue.removeListener('completed', onCompleted);
+    //       console.log('listeners removed');
+    //     }
+    //   };
 
-      console.log('adding the job...');
-      await this.queue.add('print', {
-        templatePath,
-        fillData
-      }, {
-        jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
-        timeout: this.config.printJob.timeout
-      });
+    //   console.log('adding the job...', 'pid:', process.pid);
+    //   await this.queue.add('print', {
+    //     templatePath,
+    //     fillData
+    //   }, {
+    //     jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
+    //     timeout: this.config.printJob.timeout
+    //   });
 
-      this.queue.addListener('completed', onCompleted);
-      this.queue.addListener('failed', onFailed);
+    //   this.queue.addListener('completed', onCompleted);
+    //   this.queue.addListener('failed', onFailed);
+    // });
+
+    console.log('adding the job...', 'pid:', process.pid);
+    await this.queue.add('print', {
+      templatePath,
+      fillData
+    }, {
+      jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
+      timeout: this.config.printJob.timeout,
+      attempts: 5  // LibreOffice (soffice) can be run in parallel only in limited number of instances, otherwise it will fail, so we add a few attempts to help it do the job
     });
 
     return { token };
@@ -89,6 +80,8 @@ export class PrintService/* implements OnModuleDestroy*/ {
   async getPrintOutput(token: string): Promise<[string, string]> {
     const job = await this.queue.getJob(token);
     if (job) {
+      console.log('/tmp contents', fs.readdirSync('/tmp'));
+      console.log('getting PDF', job.returnvalue?.path, fs.statSync(job.returnvalue?.path));
       return [
         job.returnvalue?.path,
         path.basename(job.data.templatePath, path.extname(job.data.templatePath)) + '.pdf'
@@ -109,33 +102,33 @@ export class PrintQueueConsumer {
     @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @InjectQueue('print') private readonly queue: Queue
   ) {
-    // TODO: remove all jobs/queues on shutdown?..
-    // TODO: from docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
-    // so probably no need to check the name...
-    queue
-      .getRepeatableJobs()
-      // .getFailed()
-      // .then(failedJobs => Promise.all(failedJobs
-      //   .filter(j => j.name === 'purge-queue')
-      //   .map(j => j.remove().then(() => console.log('remove purge-queue failed job')))
-      // ))
-      // .then(() => queue.getRepeatableJobs())
-      .then(repeatableJobs => {
-        // console.log('repeatableJobs', repeatableJobs);
-        if (!repeatableJobs.some(j => j.name === 'purge-queue')) {
-          // console.log('no purge-queue job found');
-          queue.add('purge-queue', null, {
-            repeat: { every: config.purgeQueueJob.repeatEvery },
-            removeOnComplete: true
-          }).then(() => console.log('purge-queue job has been added'));
-        }
-      });
+    // From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
+    // (i.e. it will be "added" but no duplicates will be planted)
+    queue.add('purge-queue', null, {
+      repeat: { every: config.purgeQueueJob.repeatEvery },
+      removeOnComplete: true
+    });
   }
 
+  // @OnGlobalQueueError()
+  // onGlobalQueueError(error: Error) {
+  //   console.error('pid:', process.pid, error);
+  // }
 
-  @OnGlobalQueueError()  // TODO: this will fire on all instances?...
-  onGlobalQueueError(error: Error) {
-    console.error(error);
+  @OnGlobalQueueCompleted()
+  async onGlobalCompleted(jobId: number, result: any) {  // result: string for print job
+    const job = await this.queue.getJob(jobId);
+    if (job?.id) {
+      // TODO: notify the client here
+      console.log('(Global) on completed: job ', job);
+    }
+  }
+
+  @OnGlobalQueueFailed()
+  async onGlobalFailed(jobId: number, result: any) {
+    const job = await this.queue.getJob(jobId);
+    // TODO: notify the client here
+    // console.log('(Global) on failed: job ', job);
   }
 
 

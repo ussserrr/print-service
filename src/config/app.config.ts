@@ -4,7 +4,7 @@ import { registerAs } from '@nestjs/config';
 
 
 const config = {
-  storageRootPath: process.env.STORAGE_ROOT_PATH || path.join(process.cwd(), 'storage'),
+  storagePath: process.env.STORAGE_PATH || path.join(process.cwd(), 'storage'),
   filesToKeep: 5,
   allowedFileTypes: [{
     extension: 'DOCX',

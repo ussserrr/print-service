@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: print-service-cluster-ip
+spec:
+  ports:
+  - port: 3000
+  selector:
+    app: print-service
+  type: ClusterIP
