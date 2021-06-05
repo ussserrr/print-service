@@ -39,6 +39,11 @@ async function getUniqueNameFromTitle(parentPath: string, title: string, pathTyp
     name = name + '_' + new Date().valueOf();  // use current date as randomization factor
   }
 
+  if (name.length === 0) {
+    // It is possible for name to be empty at this point so we need to be prepared
+    name = new Date().valueOf().toString();
+  }
+
   name = name + (extension ?? '');
 
   return name;
