@@ -95,6 +95,7 @@ export class PrintService/* implements OnModuleDestroy*/ {
 
 
 
+// TODO: get out from service? (e.g. queue.ts)
 @Processor('print')
 export class PrintQueueConsumer {
 
