@@ -34,6 +34,11 @@ export class TemplateFilesResolver implements
     return new TemplateTypesFindOneDto(await this.templateTypesService.findOne(file.templateType.id));
   }
 
+  @ResolveField('mimeType')
+  getMimeType(@Parent() file: FindOneDto): string {
+    return this.service.convertMimeTypeToExtension(file.mimeType);
+  }
+
   // gqlSchema.IMutation
   @Mutation()
   async createTemplateFile(
@@ -77,7 +82,7 @@ export class TemplateFilesResolver implements
     return new FindOneDto(await this.service.update(id, input));
   }
 
-  // gqlSchema.IQuery
+  // gqlSchema.IMutation
   @Mutation()
   async removeTemplateFile(@Args('id', ParseUUIDPipe) id: string): Promise<FindOneDto> {
     const [removed, warnings] = await this.service.remove(id);

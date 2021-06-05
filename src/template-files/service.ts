@@ -172,6 +172,12 @@ export class TemplateFilesService {
   }
 
 
+  convertMimeTypeToExtension(mimeType: string) {
+    const mimeAsExtension = this.config.allowedFileTypes.find(type => type.mime === mimeType)?.extension;
+    return mimeAsExtension ?? mimeType;
+  }
+
+
   async remove(id: string): Promise<[TemplateFile, string[]]> {
     const warnings: string[] = [];
 
