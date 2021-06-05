@@ -42,6 +42,7 @@ export class TemplateTypesResolver implements
   @ResolveField('pageOfFiles')
   async getFilesOf(@Parent() type: FindOneDto): Promise<TemplateFilesPageDto> {
     if (this.requestContext.templateType?.isRemoved) {
+      // TODO: edit this caption
       // Special case: when we deleting the entity its files doesn't exist anymore as well
       // so we "cache" them (to return back to the caller) at the "files" field. It isn't
       // particularly type-safe so consider it as a little "hack". Also the client cannot

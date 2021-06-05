@@ -89,7 +89,6 @@ export interface TemplateTypesFilter {
 
 export interface TemplateTypesRequestOptions {
     page?: PageInput;
-    listFiles?: boolean;
 }
 
 export interface TemplateFile {

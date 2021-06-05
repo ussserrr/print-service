@@ -34,7 +34,6 @@ input TemplateTypesFilter {
 
 input TemplateTypesRequestOptions {
   page: PageInput = {}
-  listFiles: Boolean = false  # TODO: describe in docs (page of recently updated files)
 }
 
 type TemplateTypesPageResult {

@@ -33,8 +33,6 @@ export class RequestOptionsDto implements gqlSchema.TemplateTypesRequestOptions 
   @Type(() => commonTypes.PageInputDto)
   page? = new commonTypes.PageInputDto();
 
-  listFiles: boolean;
-
   constructor(mapping?: Pick<RequestOptionsDto, keyof RequestOptionsDto>) {
     if (mapping?.page && !(mapping.page instanceof commonTypes.PageInputDto)) {
       this.page = new commonTypes.PageInputDto(mapping.page);
