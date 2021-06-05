@@ -22,3 +22,5 @@
  - [ ] Replace as much strings as possible (by enums or smth) (like resolvers names, 'print', etc.)
  - [ ] Build a dependency graph (to analyze usage, docs)
  - [ ] Authorization
+ - [ ] Check field name for sortBy in calss-validator (e.g. Object.keys(Entity) or smth)
+ - [ ] Add createdAt/updatedAt for TemplateType? (e.g. for list sorting)
