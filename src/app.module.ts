@@ -63,6 +63,14 @@ const graphqlConfig: GqlModuleOptions = {
     }
     return response || {};
   },
+
+  /**
+   * For class-transformer type transformations
+   * https://github.com/nestjs/graphql/issues/1565
+   * https://docs.nestjs.com/graphql/other-features#execute-enhancers-at-the-field-resolver-level
+   */
+  fieldResolverEnhancers: ['interceptors'],
+
   typePaths: ['./**/*.graphql'],
   resolvers: { JSON: GraphQLJSON },
 
