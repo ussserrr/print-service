@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Parent, ResolveField, CONTEXT } from '@nestjs/graphql';
-import { Inject, Injectable, ParseUUIDPipe, Scope } from '@nestjs/common';
+import { Inject, Injectable, ParseIntPipe, ParseUUIDPipe, Scope } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
 import { AppGraphQLContext } from 'src/app.module';
@@ -79,7 +79,7 @@ export class TemplateTypesResolver implements
       // either so we "cache" it (to return back to the caller) at the "currentFile" field.
       // Also the client cannot (and should not) request nested fields as any try to access
       // these objects will fail
-      return new TemplateFilesFindOneDto(type.currentFile);
+      return type.currentFile ? new TemplateFilesFindOneDto(type.currentFile) : undefined;
     }
 
     if (type.currentFile?.id) {
@@ -143,12 +143,13 @@ export class TemplateTypesResolver implements
   @Query()
   async printTemplateType(
     @Args('id', ParseUUIDPipe) id: string,
+    @Args('userId', ParseIntPipe) userId: number,
     @Args('fillData') fillData?: Record<string, any>
   ): Promise<gqlSchema.PrintOutput>
   {
     const template = await this.service.findOne(id);
     if (template.currentFile?.id) {
-      return this.templateFilesService.print(template.currentFile.id, fillData);
+      return this.templateFilesService.print(template.currentFile.id, userId, fillData);
     } else {
       throw new Error(`No current file is set for the TemplateType id=${id}`);
     }

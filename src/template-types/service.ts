@@ -39,12 +39,13 @@ export class TemplateTypesService {
 
   async create(input: CreateDto): Promise<TemplateType> {
     const containingPath = path.join(this.config.storagePath, input.owner);
-    const name = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
+    const name = await getUniqueNameFromTitle('create', containingPath, input.title, 'dir');
     // In case 'owner' folder doesn't exist yet we use 'recursive=true'
-    fs.mkdirSync(path.join(containingPath, name), { recursive: true });
+    fs.mkdirSync(path.join(containingPath, name), { recursive: true });  // TODO: probably should be after DB insertion
 
-    // Don't need to retrieve the findOne as this fresh entity doesn't have any linked entities yet anyway
-    return this.repository.save({ ...input, name });
+    // For entity triggers to run on save the entity itself should be created, not just the object
+    const type = this.repository.create({ ...input, name });
+    return this.repository.save(type);
   }
 
 
@@ -93,17 +94,27 @@ export class TemplateTypesService {
   // Note:
   // Technically, such methods are not atomic - there are not only a DB updates but file-system changes.
   // So in case of some error occuring there is a possibility for actions to be partially applied
+  // See https://typeorm.io/#/transactions for possible solution (at least a part of it)
   async update(id: string, input: UpdateDto): Promise<[TemplateType, string[]]> {
     const warnings: string[] = [];
 
     const type = await this.repository.findOneOrFail(id, { relations: ['currentFile'] });
 
     if (Object.values(input).some(v => v !== undefined)) {
-      const updateData: Partial<TemplateType & UpdateDto> = Object.assign({ id }, input);
+      if ((input.active === true || input.active === false) && (!type.currentFile || !input.currentFileId)) {
+        delete input.active;
+        warnings.push('Field "active" cannot be changed on template types with no current file');
+      }
+
+      // For entity triggers to run on save the entity itself should be created, not just the object
+      const updateData: Partial<TemplateType & UpdateDto> = this.repository.create({
+        ..._.cloneDeep(type),
+        ...input
+      })
 
       if (input.title) {
         const containingPath = path.join(this.config.storagePath, type.owner);
-        const newName = await getUniqueNameFromTitle(containingPath, input.title, 'dir');
+        const newName = await getUniqueNameFromTitle('update', containingPath, input.title, 'dir');
         if (newName !== type.name) {  // title may change but transliterated name don't
           fs.renameSync(
             path.join(containingPath, type.name),

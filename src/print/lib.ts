@@ -16,6 +16,7 @@ import { flattenObject } from 'src/util/util';
 
 export type PrintJob = {
   templatePath: string;
+  userId: number;
   fillData?: Record<string, any>;
   renderTimeout?: number;
 };
@@ -24,7 +25,8 @@ export type PrintJobOutput = {
 };
 
 
-// The error object contains additional information when logged with JSON.stringify (it contains a properties object containing all suberrors).
+// The error object contains additional information when logged with JSON.stringify
+// (it contains a properties object containing all suberrors).
 function replaceErrors(key, value) {
   if (value instanceof Error) {
     return Object.getOwnPropertyNames(value).reduce(function(error, key) {

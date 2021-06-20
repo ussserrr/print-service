@@ -51,7 +51,7 @@ export class TemplateFilesService {
 
     const title = input.title || file.filename;
     const containingPath = path.join(this.config.storagePath, type.owner, type.name);
-    const name = await getUniqueNameFromTitle(containingPath, title, 'file', path.extname(file.filename));
+    const name = await getUniqueNameFromTitle('create', containingPath, title, 'file', path.extname(file.filename));
     await new Promise((resolve, reject) =>
       file.createReadStream()
         .pipe(fs.createWriteStream(path.join(containingPath, name)))
@@ -147,7 +147,7 @@ export class TemplateFilesService {
 
       if (input.title && input.title !== file.title) {
         const containingPath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name);
-        const newName = await getUniqueNameFromTitle(containingPath, input.title, 'file', path.extname(file.name));
+        const newName = await getUniqueNameFromTitle('update', containingPath, input.title, 'file', path.extname(file.name));
         if (newName !== file.name) {  // title may change but transliterated name don't
           fs.renameSync(
             path.join(containingPath, file.name),
@@ -200,10 +200,10 @@ export class TemplateFilesService {
   }
 
 
-  async print(id: string, fillData?: Record<string, any>) {
+  async print(id: string, userId: number, fillData?: Record<string, any>) {
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
     const filePath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name, file.name);
-    return this.printService.print(filePath, fillData);
+    return this.printService.print(filePath, userId, fillData);
   }
 
   async download(id: string): Promise<string> {
