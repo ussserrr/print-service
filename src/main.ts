@@ -7,9 +7,6 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Starts listening for shutdown hooks
-  // app.enableShutdownHooks();
-
   app.useGlobalPipes(new ValidationPipe({
     skipMissingProperties: true,
     transform: true
@@ -20,7 +17,7 @@ async function bootstrap() {
     { strategy: 'excludeAll' }
   ));
 
-  await app.listen(4000);
+  await app.listen(4000);  // TODO
 }
 
 bootstrap();
