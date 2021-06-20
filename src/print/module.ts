@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bull';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import printConfig from 'src/config/print.config';
+import appConfig from 'src/config/app.config';
 
 import { TemplateFilesModule } from 'src/template-files/module';
 import { TemplateFilesService } from 'src/template-files/service';
@@ -19,6 +20,7 @@ import { TemplateTypesModule } from 'src/template-types/module';
 @Module({
   imports: [
     ConfigModule.forFeature(printConfig),
+    ConfigModule.forFeature(appConfig),
     BullModule.registerQueue({
       name: 'print',
       processors: [{

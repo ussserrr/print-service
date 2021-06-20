@@ -1,29 +1,60 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
+import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Inject, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 
 import { Job, Queue } from 'bull';
 import { InjectQueue, OnGlobalQueueCompleted, OnGlobalQueueFailed, Process, Processor } from '@nestjs/bull';
 
 import printConfig from 'src/config/print.config';
+import appConfig from 'src/config/app.config';
 
-import { PrintJob, PrintJobOutput } from './lib';
+import { PrintJob } from './lib';
+import { Observable, fromEventPattern, merge, from } from 'rxjs';
+import { filter, mergeMap } from 'rxjs/operators';
+import { OwnerDescription } from 'src/template-types/entities/entity';
 
 
 @Injectable()
-export class PrintService/* implements OnModuleDestroy*/ {
+export class PrintService {
 
   constructor(
-    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
+    @Inject(printConfig.KEY) private configPrint: ConfigType<typeof printConfig>,
+    @Inject(appConfig.KEY) private configApp: ConfigType<typeof appConfig>,
     @InjectQueue('print') private readonly queue: Queue<PrintJob>
   ) {}
 
-  async print(templatePath: string, fillData?: Record<string, any>) {
+
+  getObservable(userId: number): Observable<Job<PrintJob>> {
+    const listeners = ['completed', 'failed'].map(eventType => fromEventPattern(
+      handler => {
+        this.queue.addListener('global:' + eventType, handler);
+        console.log(eventType + ' listener added');
+      },
+      handler => {
+        this.queue.removeListener('global:' + eventType, handler);
+        console.log(eventType + ' listener removed');
+      }
+    ));
+
+    const observable = merge(...listeners).pipe(
+      mergeMap((eventArgs: [string,]) => from(this.queue.getJob(eventArgs[0]))),
+      filter(job =>
+        job?.name === 'print'
+        && job.data.userId === userId
+      )
+    );
+
+    return observable as Observable<Job<PrintJob>>;
+  }
+
+
+  async print(templatePath: string, userId: number, fillData?: Record<string, any>) {
     const token = uuidv4();
 
     // await new Promise<void>(async (resolve, reject) => {
@@ -64,12 +95,9 @@ export class PrintService/* implements OnModuleDestroy*/ {
     // });
 
     console.log('adding the job...', 'pid:', process.pid);
-    await this.queue.add('print', {
-      templatePath,
-      fillData
-    }, {
+    await this.queue.add('print', { templatePath, userId, fillData }, {
       jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
-      timeout: this.config.printJob.timeout,
+      timeout: this.configPrint.printJob.timeoutMs,
       attempts: 5  // LibreOffice (soffice) can be run in parallel only in limited number of instances, otherwise it will fail, so we add a few attempts to help it do the job
     });
 
@@ -89,6 +117,20 @@ export class PrintService/* implements OnModuleDestroy*/ {
     } else {
       throw new NotFoundException('No job found for the given token');
     }
+  }
+
+
+  async getConfig() {
+    // await new Promise(resolve => setTimeout(resolve, 10000));
+    return _.merge(
+      _.pick(this.configApp, 'filesToKeep', 'allowedFileTypes'),
+      _.pick(this.configPrint, 'printJob'),
+      {
+        owners: Object.entries(OwnerDescription).map(([key, description]) => ({
+          id: key, label: description
+        }))
+      }
+    );
   }
 
 }
@@ -113,7 +155,7 @@ export class PrintQueueConsumer {
         return job.remove();
       })))
       // From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
-      // (i.e. it will be "added" but no duplicates will be planted)
+      // (i.e. it will be "added" but no duplicates will be planted, even on multiple instances)
       .then(() => queue.add('purge-queue', null, {
         repeat: { every: config.purgeQueueJob.repeatEvery },
         removeOnComplete: true
@@ -133,19 +175,18 @@ export class PrintQueueConsumer {
   @OnGlobalQueueCompleted()
   async onGlobalCompleted(jobId: number, result: any) {  // result: string for print job
     const job = await this.queue.getJob(jobId);
+    // console.log('(Global) on completed: job', jobId);
     if (
       job?.name === 'print' &&
       typeof job.returnvalue?.path === 'string' && job.returnvalue.path.length
     ) {
-      // TODO: notify the client here
-      console.log('(Global) on completed: job ', job);
+      console.log('(Global) on completed: job', job);
     }
   }
 
   @OnGlobalQueueFailed()
   async onGlobalFailed(jobId: number, result: any) {
     const job = await this.queue.getJob(jobId);
-    // TODO: notify the client here
     // console.log('(Global) on failed: job ', job);
   }
 

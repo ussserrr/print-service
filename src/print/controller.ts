@@ -1,10 +1,14 @@
-import { Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Res } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseUUIDPipe, Res, Sse, MessageEvent, Query, ParseIntPipe } from '@nestjs/common';
 
 import { Response } from 'express';
+
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { TemplateFilesService } from 'src/template-files/service';
 
 import { PrintService } from './service';
+
 
 
 @Controller('print')
@@ -13,6 +17,20 @@ export class PrintController {
     private readonly service: PrintService,
     private readonly templateFilesService: TemplateFilesService
   ) {}
+
+
+  @Sse('sse')
+  sse(@Query('userId', ParseIntPipe) userId: number): Observable<MessageEvent> {
+    return this.service.getObservable(userId).pipe(
+      map(job => ({
+        data: {
+          token: job.id,
+          error: job.failedReason
+        }
+      }))
+    );
+  }
+
 
   @Get('output/:token')
   async downloadPrintOutput(
@@ -26,6 +44,7 @@ export class PrintController {
       }
     });
   }
+
 
   @Get('raw/:fileId')
   async downloadRawTemplate(
@@ -42,6 +61,12 @@ export class PrintController {
       }
     });
     res.download(filePath);
+  }
+
+
+  @Get('config')
+  getConfig() {
+    return this.service.getConfig();
   }
 
 }
