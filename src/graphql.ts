@@ -72,7 +72,6 @@ export interface TemplateFilesRequestOptions {
 export interface CreateTemplateTypeInput {
     owner: Owner;
     title: string;
-    active?: boolean;
 }
 
 export interface UpdateTemplateTypeInput {
@@ -111,7 +110,7 @@ export interface IQuery {
     templateFile(id: string): TemplateFile | Promise<TemplateFile>;
     templateTypes(filter?: TemplateTypesFilter, options?: TemplateTypesRequestOptions): TemplateTypesPageResult | Promise<TemplateTypesPageResult>;
     templateType(id: string): TemplateType | Promise<TemplateType>;
-    printTemplateType(id: string, fillData?: JSON): PrintOutput | Promise<PrintOutput>;
+    printTemplateType(id: string, userId: number, fillData?: JSON): PrintOutput | Promise<PrintOutput>;
 }
 
 export interface IMutation {

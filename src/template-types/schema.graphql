@@ -17,7 +17,6 @@ type TemplateType {
 input CreateTemplateTypeInput {
   owner: Owner!
   title: String!
-  active: Boolean
 }
 
 input UpdateTemplateTypeInput {
@@ -53,6 +52,7 @@ type Query {
   templateType(id: ID!): TemplateType
   printTemplateType(
     id: ID!
+    userId: Int!
     fillData: JSON
   ): PrintOutput
 }
