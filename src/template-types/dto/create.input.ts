@@ -10,6 +10,7 @@ export class CreateDto implements gqlSchema.CreateTemplateTypeInput {
   @Transform((value: gqlSchema.Owner) => dbOwner[value])
   owner: dbOwner;
 
-  @IsNotEmpty() title: string;
-  active?: boolean;
+  @IsNotEmpty()
+  @Transform(value => value.trim())
+  title: string;
 }
