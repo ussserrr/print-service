@@ -38,14 +38,23 @@ export class TemplateTypesService {
 
 
   async create(input: CreateDto): Promise<TemplateType> {
+    const duplicatesCondition = input;
+    const duplicates = await this.repository.find({ where: duplicatesCondition });
+    if (duplicates.length) {
+      throw new Error(`TemplateType with ${JSON.stringify(duplicatesCondition)} already exist`);
+    }
+
     const containingPath = path.join(this.config.storagePath, input.owner);
     const name = await getUniqueNameFromTitle('create', containingPath, input.title, 'dir');
-    // In case 'owner' folder doesn't exist yet we use 'recursive=true'
-    fs.mkdirSync(path.join(containingPath, name), { recursive: true });  // TODO: probably should be after DB insertion
 
     // For entity triggers to run on save the entity itself should be created, not just the object
     const type = this.repository.create({ ...input, name });
-    return this.repository.save(type);
+    const created = await this.repository.save(type);
+
+    // In case 'owner' folder doesn't exist yet we use 'recursive=true'
+    fs.mkdirSync(path.join(containingPath, name), { recursive: true });
+
+    return created;
   }
 
 
@@ -101,7 +110,11 @@ export class TemplateTypesService {
     const type = await this.repository.findOneOrFail(id, { relations: ['currentFile'] });
 
     if (Object.values(input).some(v => v !== undefined)) {
-      if ((input.active === true || input.active === false) && (!type.currentFile || !input.currentFileId)) {
+      if (
+        (input.active === true || input.active === false) &&
+        (input.active !== type.active) &&
+        (!type.currentFile && !input.currentFileId)
+      ) {
         delete input.active;
         warnings.push('Field "active" cannot be changed on template types with no current file');
       }
@@ -112,14 +125,21 @@ export class TemplateTypesService {
         ...input
       })
 
+      const containingPath = path.join(this.config.storagePath, type.owner);
+      const currentName = type.name;
+      let newName = '';
       if (input.title) {
-        const containingPath = path.join(this.config.storagePath, type.owner);
-        const newName = await getUniqueNameFromTitle('update', containingPath, input.title, 'dir');
-        if (newName !== type.name) {  // title may change but transliterated name don't
-          fs.renameSync(
-            path.join(containingPath, type.name),
-            path.join(containingPath, newName)
-          );
+        const duplicatesCondition = {
+          owner: type.owner,
+          title: input.title
+        };
+        const duplicates = await this.repository.find({ where: duplicatesCondition });
+        if (duplicates.length && !duplicates.every(t => t.id === type.id)) {
+          throw new Error(`TemplateType with ${JSON.stringify(duplicatesCondition)} already exist`);
+        }
+
+        newName = await getUniqueNameFromTitle('update', containingPath, input.title, 'dir');
+        if (currentName !== newName) {  // title may change but transliterated name don't
           updateData.name = newName;
         }
       }
@@ -136,6 +156,13 @@ export class TemplateTypesService {
       }
 
       await this.repository.save(updateData);
+
+      if (input.title && currentName !== newName) {
+        fs.renameSync(
+          path.join(containingPath, currentName),
+          path.join(containingPath, newName)
+        );
+      }
     } else {
       console.warn(`No properties to change were been provided`);
     }
