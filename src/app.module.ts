@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import { Inject, Logger, Module, OnModuleInit } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -32,6 +32,7 @@ import { TemplateTypesService } from './template-types/service';
 import { PrintModule } from './print/module';
 import { PrintService } from './print/service';
 import { PrintController } from './print/controller';
+import { TemplateType } from './template-types/entities/entity';
 
 
 export interface AppGraphQLContext {
@@ -46,6 +47,7 @@ const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
 });
 
 const graphqlConfig: GqlModuleOptions = {
+  cors: true,  // TODO
   context: contextFactory,
   formatResponse: (
     response: GraphQLResponse | null,
@@ -98,7 +100,13 @@ const graphqlConfig: GqlModuleOptions = {
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule.forFeature(dbConfig)],
       inject: [dbConfig.KEY],
-      useFactory: (config: ConfigType<typeof dbConfig>) => config
+      useFactory: (config: ConfigType<typeof dbConfig>) => ({
+        ...config,
+        entities: [
+          TemplateFile,
+          TemplateType
+        ]
+      })
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule.forFeature(queueConfig)],
@@ -129,15 +137,17 @@ const graphqlConfig: GqlModuleOptions = {
   ]
 })
 export class AppModule implements OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
+
   constructor(
-    @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>,
+    @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>
   ) {}
 
   onModuleInit() {
     try {
       fs.accessSync(this.config.storagePath, fs.constants.F_OK);
     } catch {
-      console.info(`app.config.storagePath path (${this.config.storagePath}) doesn't exist, creating one...`);
+      this.logger.warn(`app.config.storagePath path (${this.config.storagePath}) doesn't exist, creating one...`);
       fs.mkdirSync(this.config.storagePath, { recursive: true });
     }
     // Check we have necessary file-system permissions (read/write)

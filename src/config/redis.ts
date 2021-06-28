@@ -3,5 +3,5 @@
  */
 export default {
   host: process.env.REDIS_HOST,
-  port: 6379
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379
 };
