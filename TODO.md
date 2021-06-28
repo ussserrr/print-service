@@ -2,8 +2,8 @@
 
  - [±] check against the most strict TS configuration
  - [ ] use `leftJoin` for `FindOne`s?
- - [ ] logging (debug/dev/prod mode)
- - [ ] check DB relations again (uniq `currentFile`s, etc.)
+ - [x] logging (debug/dev/prod mode)
+ - [x] check DB relations again (uniq `currentFile`s, etc.)
  - [ ] check dates (emulate another timezone)
  - [x] customize exception messages (coming from GraphQL, TypeORM)
  - [x] limit available file types (and names, e.g. OS-reserved ones)
@@ -20,7 +20,7 @@
  - [ ] Translate errors, warnings so the client can display them to end-user (e.g. TypeORM errors shouldn't be exposed actually... In theory, we should catch them anyway, and so then we can throw custom (and therefore translated) messages)
  - [ ] Maybe detect that this template has been printed with this data already so return from cache (i.e. store the hash)
  - [ ] Replace as much strings as possible (by enums or smth) (like resolvers names, 'print', etc.)
- - [ ] Build a dependency graph (to analyze usage, docs)
+ - [x] Build a dependency graph (to analyze usage, docs)
  - [ ] Authorization
  - [ ] Check field name for sortBy in calss-validator (e.g. Object.keys(Entity) or smth)
  - [ ] Add createdAt/updatedAt for TemplateType? (e.g. for list sorting)

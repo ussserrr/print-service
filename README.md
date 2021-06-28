@@ -81,3 +81,8 @@ Execute the command inside the particular pod:
 ```
 kubectl exec print-service-deployment-797f9f96b6-847qc -- ls
 ```
+
+Generate docs:
+```
+npx @compodoc/compodoc -p tsconfig.json -s
+```
