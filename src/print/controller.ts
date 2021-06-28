@@ -21,7 +21,7 @@ export class PrintController {
 
   @Sse('sse')
   sse(@Query('userId', ParseIntPipe) userId: number): Observable<MessageEvent> {
-    return this.service.getObservable(userId).pipe(
+    return this.service.listenForJobs(userId).pipe(
       map(job => ({
         data: {
           token: job.id,
