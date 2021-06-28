@@ -6,6 +6,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 
+import { Logger } from '@nestjs/common';
+
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 
@@ -25,6 +27,9 @@ export type PrintJobOutput = {
 };
 
 
+const logger = new Logger('PrintLib');
+
+
 // The error object contains additional information when logged with JSON.stringify
 // (it contains a properties object containing all suberrors).
 function replaceErrors(key, value) {
@@ -38,13 +43,11 @@ function replaceErrors(key, value) {
 }
 
 function errorHandler(error) {
-  console.log(JSON.stringify({error: error}, replaceErrors));
+  logger.error(JSON.stringify({ error: error }, replaceErrors));
 
   if (error.properties && error.properties.errors instanceof Array) {
-    const errorMessages = error.properties.errors.map(function (error) {
-      return error.properties.explanation;
-    }).join("\n");
-    console.log('errorMessages', errorMessages);
+    const errorMessages = error.properties.errors.map(e => e.properties.explanation).join('\n');
+    logger.error(errorMessages);
     // errorMessages is a humanly readable message looking like this :
     // 'The tag beginning with "foobar" is unopened'
   }
