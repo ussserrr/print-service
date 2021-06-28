@@ -35,7 +35,7 @@ export class TemplateFilesService {
     private readonly templateTypesService: TemplateTypesService,
     private readonly printService: PrintService
   ) {
-    this.entityColumns = this.repository.metadata.ownColumns.map(column => column.propertyName);
+    this.entityColumns = repository.metadata.ownColumns.map(column => column.propertyName);
   }
 
 
@@ -139,7 +139,9 @@ export class TemplateFilesService {
   }
 
 
-  async update(id: string, input: UpdateDto): Promise<TemplateFile> {
+  async update(id: string, input: UpdateDto): Promise<[TemplateFile, string[]]> {
+    const warnings: string[] = [];
+
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
 
     if (Object.values(input).some(v => v !== undefined)) {
@@ -165,10 +167,10 @@ export class TemplateFilesService {
 
       await this.repository.save(updateData);
     } else {
-      console.warn(`No properties to change were been provided`);
+      warnings.push(`No properties to update were been provided`);
     }
 
-    return this.findOne(id);
+    return [await this.findOne(id), warnings];
   }
 
 

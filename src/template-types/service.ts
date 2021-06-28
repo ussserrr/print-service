@@ -33,7 +33,7 @@ export class TemplateTypesService {
     @InjectRepository(TemplateType) private repository: Repository<TemplateType>,
     @InjectRepository(TemplateFile) private filesRepository: Repository<TemplateFile>
   ) {
-    this.entityColumns = this.repository.metadata.ownColumns.map(column => column.propertyName);
+    this.entityColumns = repository.metadata.ownColumns.map(column => column.propertyName);
   }
 
 
@@ -164,7 +164,7 @@ export class TemplateTypesService {
         );
       }
     } else {
-      console.warn(`No properties to change were been provided`);
+      warnings.push(`No properties to update were been provided`);
     }
 
     return [await this.findOne(id), warnings];

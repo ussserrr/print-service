@@ -79,7 +79,9 @@ export class TemplateFilesResolver implements
     @Args('data') input: UpdateDto
   ): Promise<FindOneDto>
   {
-    return new FindOneDto(await this.service.update(id, input));
+    const [updated, warnings] = await this.service.update(id, input);
+    this.requestContext.warnings.push(...warnings);
+    return new FindOneDto(updated);
   }
 
   // gqlSchema.IMutation
