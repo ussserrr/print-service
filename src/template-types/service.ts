@@ -123,7 +123,7 @@ export class TemplateTypesService {
       const updateData: Partial<TemplateType & UpdateDto> = this.repository.create({
         ..._.cloneDeep(type),
         ...input
-      })
+      });
 
       const containingPath = path.join(this.config.storagePath, type.owner);
       const currentName = type.name;

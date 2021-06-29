@@ -2,6 +2,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
+import { config } from './config/app.config';
 
 
 async function bootstrap() {
@@ -19,7 +20,7 @@ async function bootstrap() {
     { strategy: 'excludeAll' }
   ));
 
-  await app.listen(4000);  // TODO
+  await app.listen(config.port);
 }
 
 bootstrap();
