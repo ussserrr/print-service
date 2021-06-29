@@ -42,11 +42,12 @@ export class TemplateFilesResolver implements
   // gqlSchema.IMutation
   @Mutation()
   async createTemplateFile(
-    @Args('file') fileUpload: FileUpload,
+    @Args('file') fileUpload: any,  // weird Promise<FileUpload> plus something else, actually (see https://github.com/nestjs/graphql/issues/901)
     @Args('data') input: CreateDto
   ): Promise<FindOneDto>
   {
-    const uploadedFile = await fileUpload;
+    const uploadedFile = (await fileUpload.promise) as FileUpload;
+    console.log('uploadedFile', uploadedFile);
     const [created, warnings] = await this.service.create(uploadedFile, input);
     this.requestContext.warnings.push(...warnings);
     return new FindOneDto(created);

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { Inject, Logger, Module, OnModuleInit } from '@nestjs/common';
+import { Inject, Logger, MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -9,6 +9,7 @@ import { GqlModuleOptions, GraphQLModule } from '@nestjs/graphql';
 import { GraphQLResponse, GraphQLRequestContext } from 'apollo-server-types';
 import { ContextFunction } from 'apollo-server-core';
 import GraphQLJSON from 'graphql-type-json';
+import { graphqlUploadExpress } from 'graphql-upload';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
 
@@ -48,12 +49,12 @@ const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
 
 const graphqlConfig: GqlModuleOptions = {
   cors: true,  // TODO
+  uploads: false,  // https://github.com/jaydenseric/graphql-upload/issues/170#issuecomment-825532027
   context: contextFactory,
   formatResponse: (
     response: GraphQLResponse | null,
     ctx: GraphQLRequestContext<AppGraphQLContext>,
-  ): GraphQLResponse =>
-  {
+  ): GraphQLResponse => {
     const warnings = ctx.context.warnings;
     if (warnings.length) {
       if (response) {
@@ -136,12 +137,16 @@ const graphqlConfig: GqlModuleOptions = {
     PrintService
   ]
 })
-export class AppModule implements OnModuleInit {
+export class AppModule implements NestModule, OnModuleInit {
   private readonly logger = new Logger(AppModule.name);
 
   constructor(
     @Inject(appConfig.KEY) private config: ConfigType<typeof appConfig>
   ) {}
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(graphqlUploadExpress()).forRoutes('graphql');
+  }
 
   onModuleInit() {
     try {
