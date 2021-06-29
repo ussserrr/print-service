@@ -13,7 +13,7 @@ export class FilterDto implements gqlSchema.TemplateTypesFilter {
   common?: commonTypes.CommonFilterDto;
 
   @ArrayNotEmpty()
-  @Transform((value: gqlSchema.Owner[]) => value.map(item => dbOwner[item]))
+  @Transform(({ value }: { value: gqlSchema.Owner[] }) => value.map(item => dbOwner[item]))
   owners?: dbOwner[];
 
   active?: boolean;

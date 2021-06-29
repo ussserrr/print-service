@@ -9,7 +9,7 @@ export class CreateDto implements gqlSchema.CreateTemplateFileInput {
   templateTypeId: string;
 
   @IsNotEmpty()
-  @Transform(value => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   title?: string;
 
   isCurrentFileOfItsType?: boolean;

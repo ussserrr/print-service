@@ -7,10 +7,10 @@ import { Owner as dbOwner } from '../entities/entity';
 
 
 export class CreateDto implements gqlSchema.CreateTemplateTypeInput {
-  @Transform((value: gqlSchema.Owner) => dbOwner[value])
+  @Transform(({ value }: { value: gqlSchema.Owner }) => dbOwner[value])
   owner: dbOwner;
 
   @IsNotEmpty()
-  @Transform(value => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   title: string;
 }

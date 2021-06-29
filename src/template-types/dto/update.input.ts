@@ -6,7 +6,7 @@ import * as gqlSchema from 'src/graphql';
 
 export class UpdateDto implements gqlSchema.UpdateTemplateTypeInput {
   @IsNotEmpty()
-  @Transform(value => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   title?: string;
 
   active?: boolean;

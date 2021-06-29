@@ -17,7 +17,7 @@ export class FindOneDto implements gqlSchema.TemplateFile {
   templateType: TemplateTypeFindOneDto;
 
   @Expose({ name: 'isCurrentFileOfItsType' })
-  @Transform(value => value ? true : false)
+  @Transform(({ value }) => value ? true : false)
   currentFileOfType?: TemplateTypeFindOneDto;
 
   constructor(entity?: Pick<FindOneDto, keyof FindOneDto>) {
