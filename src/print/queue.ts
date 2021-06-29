@@ -53,7 +53,7 @@ export class PrintQueue {
   @Process(PURGE_QUEUE_JOB_NAME)
   async purgeQueue(job: Job) {
     const completedJobs = await this.queue.getCompleted();
-    const completedRemovedPrintJobs = await Promise.all(completedJobs
+    const removedCompletedPrintJobs = await Promise.all(completedJobs
       .filter(job =>
         job.name === PRINT_JOB_NAME &&
         job.returnvalue?.path?.length &&
@@ -71,6 +71,6 @@ export class PrintQueue {
         return job.remove();
       })
     );
-    this.logger.log(`"${PURGE_QUEUE_JOB_NAME}" job: ${completedRemovedPrintJobs.length} "${PRINT_JOB_NAME}" completed jobs found and removed`);
+    this.logger.debug(`"${PURGE_QUEUE_JOB_NAME}" job: ${removedCompletedPrintJobs.length} "${PRINT_JOB_NAME}" completed jobs found and removed`);
   }
 }

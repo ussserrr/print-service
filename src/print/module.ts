@@ -1,9 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { forwardRef, Inject, Logger, Module, OnModuleInit } from '@nestjs/common';
+import { forwardRef, Inject, Logger, MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 
-import { BullModule } from '@nestjs/bull';
+import { BullModule, InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+
+import { createBullBoard } from '@bull-board/api';
+import { BullAdapter } from '@bull-board/api/bullAdapter';
+import { ExpressAdapter } from '@bull-board/express';
 
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import printConfig, { PRINT_JOB_NAME, PRINT_QUEUE_NAME } from 'src/config/print.config';
@@ -13,6 +18,7 @@ import { TemplateFilesModule } from 'src/template-files/module';
 import { TemplateFilesService } from 'src/template-files/service';
 import { TemplateTypesModule } from 'src/template-types/module';
 
+import { PrintJob } from './lib';
 import { PrintQueue } from './queue';
 import { PrintService } from './service';
 import { PrintController } from './controller';
@@ -43,12 +49,27 @@ import { PrintController } from './controller';
     BullModule
   ]
 })
-export class PrintModule implements OnModuleInit {
+export class PrintModule implements NestModule, OnModuleInit {
   private readonly logger = new Logger(PrintModule.name);
 
   constructor(
-    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>
+    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
+    @InjectQueue(PRINT_QUEUE_NAME) private readonly queue: Queue<PrintJob>
   ) {}
+
+  configure(consumer: MiddlewareConsumer) {
+    const serverAdapter = new ExpressAdapter();
+    const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
+      queues: [
+        new BullAdapter(this.queue)
+      ],
+      serverAdapter: serverAdapter
+    });
+    serverAdapter.setBasePath('/print/queues');
+    consumer
+      .apply(serverAdapter.getRouter())
+      .forRoutes('/print/queues');
+  }
 
   onModuleInit() {
     if (typeof this.config.cachePath === 'string') {

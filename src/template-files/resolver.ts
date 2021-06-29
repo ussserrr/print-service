@@ -47,7 +47,7 @@ export class TemplateFilesResolver implements
   ): Promise<FindOneDto>
   {
     const uploadedFile = (await fileUpload.promise) as FileUpload;
-    console.log('uploadedFile', uploadedFile);
+    console.log('uploadedFile', uploadedFile);  // TODO
     const [created, warnings] = await this.service.create(uploadedFile, input);
     this.requestContext.warnings.push(...warnings);
     return new FindOneDto(created);

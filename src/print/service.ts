@@ -10,13 +10,13 @@ import { ConfigType } from '@nestjs/config';
 import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 
-import printConfig, { PRINT_JOB_NAME, PRINT_QUEUE_NAME } from 'src/config/print.config';
-import appConfig from 'src/config/app.config';
-
-import { PrintJob } from './lib';
 import { Observable, fromEventPattern, merge, from } from 'rxjs';
 import { filter, mergeMap } from 'rxjs/operators';
+
+import printConfig, { PRINT_JOB_NAME, PRINT_QUEUE_NAME } from 'src/config/print.config';
 import { OwnerDescription } from 'src/template-types/entities/entity';
+import appConfig from 'src/config/app.config';
+import { PrintJob } from './lib';
 
 
 @Injectable()
@@ -33,7 +33,7 @@ export class PrintService {
     const listeners = ['completed', 'failed'].map(eventType => fromEventPattern(
       handler => {
         this.queue.addListener('global:' + eventType, handler);
-        console.log(eventType + ' listener added');
+        console.log(eventType + ' listener added');  // TODO
       },
       handler => {
         this.queue.removeListener('global:' + eventType, handler);
