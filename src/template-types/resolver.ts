@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args, Parent, ResolveField, CONTEXT } from '
 import { Inject, Injectable, ParseIntPipe, ParseUUIDPipe, Scope } from '@nestjs/common';
 
 import * as gqlSchema from 'src/graphql';
-import { AppGraphQLContext } from 'src/app.module';
+import { AppGraphQLContext } from 'src/config/graphql.config';
 
 import { FindOneDto as TemplateFilesFindOneDto } from 'src/template-files/dto/find-one.output';
 import { TemplateFilesService } from 'src/template-files/service';

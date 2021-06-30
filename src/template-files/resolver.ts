@@ -3,7 +3,7 @@ import { Inject, Injectable, ParseUUIDPipe, Scope } from '@nestjs/common';
 import { FileUpload } from 'graphql-upload';
 
 import * as gqlSchema from 'src/graphql';
-import { AppGraphQLContext } from 'src/app.module';
+import { AppGraphQLContext } from 'src/config/graphql.config';
 
 import { TemplateTypesService } from 'src/template-types/service';
 import { FindOneDto as TemplateTypesFindOneDto } from 'src/template-types/dto/find-one.output';
