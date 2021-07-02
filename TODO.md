@@ -7,8 +7,8 @@
  - [ ] check dates (emulate another timezone)
  - [x] customize exception messages (coming from GraphQL, TypeORM)
  - [x] limit available file types (and names, e.g. OS-reserved ones)
- - [ ] handle cases when the file was removed outside of the app/DB (i.e. directly in filesystem)
- - [ ] reset `package-lock.json` in the end (as we're messing with Node versions (and to upgrade as well))
+ - [ ] handle cases when the file was removed outside of the app/DB (i.e. directly in filesystem) (or store as BLOBs in the DB itself)
+ - [x] reset `package-lock.json` in the end (as we're messing with Node versions (and to upgrade as well))
  - [x] limit number of files on the drive (check for creation and update)
  - [ ] TypeOrm entity validation, too (class-validator)?
  - [ ] Test multiple mutations at the same time (including same ones (e.g. update after update))
@@ -19,8 +19,10 @@
        IMPORTANT! We can actually inject the context "globally" (on resolver/service level) - https://docs.nestjs.com/fundamentals/injection-scopes. Or (probably better) we can implement a proper standalone middleware (interceptor or smth) that takes service' return value in form `[result, [warnings]]` and attaches an array to the context's property
  - [ ] Translate errors, warnings so the client can display them to end-user (e.g. TypeORM errors shouldn't be exposed actually... In theory, we should catch them anyway, and so then we can throw custom (and therefore translated) messages)
  - [ ] Maybe detect that this template has been printed with this data already so return from cache (i.e. store the hash)
- - [ ] Replace as much strings as possible (by enums or smth) (like resolvers names, 'print', etc.)
+ - [±] Replace as much strings in code as possible (by enums or smth) (like resolvers names, 'print', etc.)
  - [x] Build a dependency graph (to analyze usage, docs)
  - [ ] Authorization
  - [ ] Check field name for sortBy in calss-validator (e.g. Object.keys(Entity) or smth)
  - [x] Add createdAt/updatedAt for TemplateType? (e.g. for list sorting)
+ - [ ] Use npm-version
+ - [ ] Deploy on Azure?

@@ -34,9 +34,9 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-Create a file:
+Create a TemplateFile:
 ```
-curl -X POST -F 'operations={"query":"mutation CreateTemplateFile($file:Upload!) {\n  createTemplateFile(file:$file data:{templateTypeId:\"b1c1d8aa-5f07-4475-8719-a6dbb669b13e\"})\n {id title}}", "variables":{"file":null}}' -F 'map={"0":["variables.file"]}' -F '0=@/Users/chufyrev/Pictures/IMG_3184.JPG' http://localhost:3000/graphql
+curl -X POST -F 'operations={"query":"mutation CreateTemplateFile($file:Upload!) {\n  createTemplateFile(file:$file data:{templateTypeId:\"b1c1d8aa-5f07-4475-8719-a6dbb669b13e\"})\n {id title}}", "variables":{"file":null}}' -F 'map={"0":["variables.file"]}' -F '0=@/Users/chufyrev/Pictures/IMG_3184.JPG' http://localhost:4000/graphql
 ```
 
 https://github.com/jaydenseric/graphql-upload#tips
@@ -60,7 +60,7 @@ Deploy the development Kubernetes cluster:
 kubectl apply -f k8s
 ```
 
-To access the cluster use port 80 (e.g. http://localhost:80/graphql) (3000 for "raw" Docker container).
+To access the cluster use port 80 (e.g. http://localhost:80/graphql) (4000 for "raw" Docker container).
 
 Shutdown this cluster:
 ```
