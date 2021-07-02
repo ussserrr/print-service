@@ -19,17 +19,25 @@ spec:
         image: print-service:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 4000
         volumeMounts:
         - mountPath: /usr/src/app
           name: app-src
         env:
+          - name: URL_PREFIX
+            value: /api
+          - name: NODE_PORT
+            value: "4000"
           - name: STORAGE_PATH
             value: /usr/src/app/storage
           - name: PRINT_CACHE_PATH
             value: $(STORAGE_PATH)/_tmp
           - name: POSTGRES_HOST
             value: host.docker.internal
+          - name: POSTGRES_USER
+            value: chufyrev
+          - name: POSTGRES_DB
+            value: chufyrev
           - name: REDIS_HOST
             value: host.docker.internal
       volumes:

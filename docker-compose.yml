@@ -5,12 +5,16 @@ services:
     image: print-service
     command: npm run start:dev
     ports:
-      - 3000:3000
+      - 4000:4000
     working_dir: /usr/src/app
     volumes:
       - .:/usr/src/app
     environment:
+      URL_PREFIX: /api
+      NODE_PORT: 4000
       STORAGE_PATH: /usr/src/app/storage
       PRINT_CACHE_PATH: /usr/src/app/storage/_tmp  # store at the storage, too
       POSTGRES_HOST: host.docker.internal
+      POSTGRES_USER: chufyrev
+      POSTGRES_DB: chufyrev
       REDIS_HOST: host.docker.internal
