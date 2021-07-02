@@ -20,7 +20,8 @@ const contextFactory: ContextFunction<any, AppGraphQLContext> = () => ({
 });
 
 const graphqlConfig: GqlModuleOptions = {
-  cors: true,  // TODO
+  useGlobalPrefix: true,
+  cors: process.env.NODE_ENV === 'development',
   uploads: false,  // https://github.com/jaydenseric/graphql-upload/issues/170#issuecomment-825532027
   context: contextFactory,
   formatResponse: (

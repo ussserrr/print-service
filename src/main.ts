@@ -7,8 +7,9 @@ import { config } from './config/app.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: true  // TODO
+    cors: process.env.NODE_ENV === 'development'
   });
+  app.setGlobalPrefix(config.urlPrefix);
 
   app.useGlobalPipes(new ValidationPipe({
     skipMissingProperties: true,
