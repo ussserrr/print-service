@@ -54,21 +54,18 @@ export class PrintModule implements NestModule, OnModuleInit {
 
   constructor(
     @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
+    @Inject(appConfig.KEY) private configApp: ConfigType<typeof appConfig>,
     @InjectQueue(PRINT_QUEUE_NAME) private readonly queue: Queue<PrintJob>
   ) {}
 
   configure(consumer: MiddlewareConsumer) {
     const serverAdapter = new ExpressAdapter();
-    const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
-      queues: [
-        new BullAdapter(this.queue)
-      ],
-      serverAdapter: serverAdapter
+    createBullBoard({
+      queues: [new BullAdapter(this.queue)],
+      serverAdapter
     });
-    serverAdapter.setBasePath('/print/queues');
-    consumer
-      .apply(serverAdapter.getRouter())
-      .forRoutes('/print/queues');
+    serverAdapter.setBasePath(this.configApp.urlPrefix + '/print/queues');
+    consumer.apply(serverAdapter.getRouter()).forRoutes('/print/queues');
   }
 
   onModuleInit() {

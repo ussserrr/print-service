@@ -23,7 +23,7 @@ import { PrintJob } from './lib';
 export class PrintService {
 
   constructor(
-    @Inject(printConfig.KEY) private configPrint: ConfigType<typeof printConfig>,
+    @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @Inject(appConfig.KEY) private configApp: ConfigType<typeof appConfig>,
     @InjectQueue(PRINT_QUEUE_NAME) private readonly queue: Queue<PrintJob>
   ) {}
@@ -62,7 +62,7 @@ export class PrintService {
     console.log('adding the job...', 'pid:', process.pid);
     await this.queue.add(PRINT_JOB_NAME, { templatePath, userId, fillData }, {
       jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
-      timeout: this.configPrint.printJob.timeoutMs,
+      timeout: this.config.printJob.timeoutMs,
       attempts: 5  // LibreOffice (soffice) can be run in parallel only in limited number of instances, otherwise it will fail, so we add a few attempts to help it do the job
     });
 
@@ -89,7 +89,7 @@ export class PrintService {
     // await new Promise(resolve => setTimeout(resolve, 10000));
     return _.merge(
       _.pick(this.configApp, 'filesToKeep', 'allowedFileTypes'),
-      _.pick(this.configPrint, 'printJob'),
+      _.pick(this.config, 'printJob'),
       {
         owners: Object.entries(OwnerDescription).map(([key, description]) => ({
           id: key, label: description

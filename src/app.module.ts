@@ -21,7 +21,6 @@ import printConfig from 'src/config/print.config';
 import graphqlConfig from './config/graphql.config';
 
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 import { TemplateFile } from './template-files/entities/entity';
 import { TemplateFilesModule } from './template-files/module';
@@ -62,9 +61,13 @@ import { TemplateType } from './template-types/entities/entity';
     TemplateFilesModule,
     TemplateTypesModule,
     PrintModule,
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'docs'),
-      serveRoot: '/docs'
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule.forFeature(appConfig)],
+      inject: [appConfig.KEY],
+      useFactory: (config: ConfigType<typeof appConfig>) => new Promise(r => r([{
+        rootPath: path.join(__dirname, '..', 'docs'),
+        serveRoot: config.urlPrefix + '/docs'
+      }]))
     })
   ],
   controllers: [
@@ -72,13 +75,11 @@ import { TemplateType } from './template-types/entities/entity';
     PrintController
   ],
   providers: [
-    AppService,
     TemplateTypesService,
     TemplateFilesService,
     PrintService
   ],
   exports: [
-    AppService,
     TypeOrmModule,
     TemplateTypesService,
     TemplateFilesService,

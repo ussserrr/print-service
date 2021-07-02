@@ -4,7 +4,8 @@ import { registerAs } from '@nestjs/config';
 
 
 export const config = {
-  port: process.env.PORT ? parseInt(process.env.PORT) : 4000,
+  port: process.env.NODE_PORT ? parseInt(process.env.NODE_PORT) : 4000,
+  urlPrefix: process.env.URL_PREFIX || '/api',
   storagePath: process.env.STORAGE_PATH || path.join(process.cwd(), 'storage'),
   filesToKeep: 5,  // number of files per template type
   allowedFileTypes: [{
