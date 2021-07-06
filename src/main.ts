@@ -6,6 +6,8 @@ import { config } from './config/app.config';
 
 
 async function bootstrap() {
+  console.log('NODE_ENV:', );
+
   const app = await NestFactory.create(AppModule, {
     cors: process.env.NODE_ENV === 'development'
   });

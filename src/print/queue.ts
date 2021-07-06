@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { Processor, InjectQueue, OnGlobalQueueCompleted, Process } from '@nestjs/bull';
+import { Processor, InjectQueue, OnGlobalQueueCompleted, Process, OnGlobalQueueFailed } from '@nestjs/bull';
 import { Logger, Inject } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 
@@ -16,6 +16,11 @@ import { PrintJob } from './lib';
 export class PrintQueue {
   private readonly logger = new Logger(PrintQueue.name);
 
+  /**
+   * On startup, there may be a failed "purge-queue" job from the last time. It is OK and the reason
+   * of failure is hidden somewhere in the Bull internals.
+   * TODO: Google it (see the "failedReason" text below) and fix it
+   */
   constructor(
     @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
     @InjectQueue(PRINT_QUEUE_NAME) private readonly queue: Queue
@@ -23,7 +28,7 @@ export class PrintQueue {
     queue.getFailed()
       .then(failedJobs => failedJobs.filter(job =>
         job.name === PURGE_QUEUE_JOB_NAME &&
-        job.failedReason === ('Missing process handler for job type ' + PURGE_QUEUE_JOB_NAME)  // TODO: try to google and solve this
+        job.failedReason === ('Missing process handler for job type ' + PURGE_QUEUE_JOB_NAME)
       ))
       .then(purgeQueueFailedJobs => Promise.all(purgeQueueFailedJobs.map(job => {
         this.logger.log(`Failed "${PURGE_QUEUE_JOB_NAME}" job ${job.id} found, it will be removed`);
@@ -37,10 +42,13 @@ export class PrintQueue {
       }));
   }
 
-  @OnGlobalQueueCompleted()
+  /**
+   * These handlers SHOULD be defined even if we're adding the listeners somewhere else
+   * in the application in order for the queue to serve our events
+   */
+   @OnGlobalQueueCompleted()
   async onGlobalCompleted(jobId: number, result: any) {
     const job = await this.queue.getJob(jobId);
-    // console.log('(Global) on completed: job', jobId);
     if (
       job?.name === PRINT_JOB_NAME &&
       job.returnvalue?.path?.length
@@ -48,6 +56,9 @@ export class PrintQueue {
       console.log('(Global) on completed: job', job.id);
     }
   }
+
+  @OnGlobalQueueFailed()
+  onGlobalFailed(jobId: number, failedReason: string) {}
 
 
   @Process(PURGE_QUEUE_JOB_NAME)

@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 
 import { Job, Queue } from 'bull';
@@ -21,6 +21,7 @@ import { PrintJob } from './lib';
 
 @Injectable()
 export class PrintService {
+  private readonly logger = new Logger(PrintService.name);
 
   constructor(
     @Inject(printConfig.KEY) private config: ConfigType<typeof printConfig>,
@@ -33,11 +34,11 @@ export class PrintService {
     const listeners = ['completed', 'failed'].map(eventType => fromEventPattern(
       handler => {
         this.queue.addListener('global:' + eventType, handler);
-        console.log(eventType + ' listener added');  // TODO
+        this.logger.debug(`UserID ${userId} requested a listener for the "${eventType}" event`);
       },
       handler => {
         this.queue.removeListener('global:' + eventType, handler);
-        console.log(eventType + ' listener removed');
+        this.logger.debug(`UserID ${userId} disconnected from the "${eventType}" listener`);
       }
     ));
 
@@ -59,7 +60,7 @@ export class PrintService {
   async print(templatePath: string, userId: number, fillData?: Record<string, any>) {
     const token = uuidv4();
 
-    console.log('adding the job...', 'pid:', process.pid);
+    console.log('adding the job...', 'pid:', process.pid);  // TODO
     await this.queue.add(PRINT_JOB_NAME, { templatePath, userId, fillData }, {
       jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
       timeout: this.config.printJob.timeoutMs,
@@ -73,8 +74,8 @@ export class PrintService {
   async getPrintOutput(token: string): Promise<[string, string]> {
     const job = await this.queue.getJob(token);
     if (job) {
-      console.log('/tmp contents', fs.readdirSync('/tmp'));
-      console.log('getting PDF', job.returnvalue?.path, fs.statSync(job.returnvalue?.path));
+      console.log('/tmp contents', fs.readdirSync('/tmp'));  // TODO
+      console.log('getting PDF', job.returnvalue?.path, fs.statSync(job.returnvalue?.path));  // TODO
       return [
         job.returnvalue?.path,
         path.basename(job.data.templatePath, path.extname(job.data.templatePath)) + '.pdf'
