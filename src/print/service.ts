@@ -100,6 +100,10 @@ export class PrintService {
   }
 
 
+  /**
+   * Prepare a reasonable subset of the app config to consume by clients
+   * @returns JSON
+   */
   async getConfig() {
     return _.merge(
       _.pick(this.configApp, 'filesToKeep', 'allowedFileTypes'),

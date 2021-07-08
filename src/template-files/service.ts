@@ -52,12 +52,16 @@ export class TemplateFilesService {
     const title = input.title || file.filename;
     const containingPath = path.join(this.config.storagePath, type.owner, type.name);
     const name = await getUniqueNameFromTitle('create', containingPath, title, 'file', path.extname(file.filename));
+    const filePath = path.join(containingPath, name);
     await new Promise((resolve, reject) =>
       file.createReadStream()
-        .pipe(fs.createWriteStream(path.join(containingPath, name)))
+        .pipe(fs.createWriteStream(filePath))
         .on('finish', resolve)
         .on('error', reject)
     );
+    if (fs.statSync(filePath).size <= 0) {  // additional check for file correctness
+      throw new Error('Input file is empty');
+    }
 
     const created = await this.repository.save({
       name,
@@ -208,10 +212,10 @@ export class TemplateFilesService {
     return this.printService.print(filePath, userId, fillData);
   }
 
-  async download(id: string): Promise<string> {
+  async download(id: string): Promise<[string, string]> {
     const file = await this.repository.findOneOrFail(id, { relations: ['templateType'] });
     const filePath = path.join(this.config.storagePath, file.templateType.owner, file.templateType.name, file.name);
-    return filePath;
+    return [filePath, file.title || file.name];
   }
 
 }
