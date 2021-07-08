@@ -42,11 +42,12 @@ export class TemplateTypesResolver implements
   @ResolveField('pageOfFiles')
   async getFilesOf(@Parent() type: FindOneDto): Promise<TemplateFilesPageDto> {
     if (this.requestContext.templateType?.isRemoved) {
-      // TODO: edit this caption
-      // Special case: when we deleting the entity its files doesn't exist anymore as well
-      // so we "cache" them (to return back to the caller) at the "files" field. It isn't
-      // particularly type-safe so consider it as a little "hack". Also the client cannot
-      // (and should not) request nested fields as any try to access these objects will fail
+      /**
+       * Special case: when we removing the entity its files doesn't exist anymore as well
+       * so we "cache" them (to return back to the caller) in the RequestContext object.
+       * The client cannot (and should not) request any relation fields of these files
+       * as any try to access them will fail
+       */
       return new TemplateFilesPageDto({
         items: this.requestContext.templateType?.filesOfRemoved,
         total: this.requestContext.templateType?.filesOfRemoved.length
@@ -75,10 +76,7 @@ export class TemplateTypesResolver implements
   @ResolveField('currentFile')
   async getCurrentFileOf(@Parent() type: FindOneDto): Promise<TemplateFilesFindOneDto | undefined> {
     if (this.requestContext.templateType?.isRemoved) {
-      // Special case: when we deleting the entity its current file doesn't exist anymore
-      // either so we "cache" it (to return back to the caller) at the "currentFile" field.
-      // Also the client cannot (and should not) request nested fields as any try to access
-      // these objects will fail
+      // Special case: see 'pageOfFiles' for explanation
       return type.currentFile ? new TemplateFilesFindOneDto(type.currentFile) : undefined;
     }
 

@@ -88,8 +88,6 @@ export class PrintService {
   async getPrintOutput(token: string): Promise<[string, string]> {
     const job = await this.queue.getJob(token);
     if (job) {
-      console.log('/tmp contents', fs.readdirSync('/tmp'));  // TODO
-      console.log('getting PDF', job.returnvalue?.path, fs.statSync(job.returnvalue?.path));  // TODO
       return [
         job.returnvalue?.path,
         path.basename(job.data.templatePath, path.extname(job.data.templatePath)) + '.pdf'
