@@ -12,7 +12,7 @@ const config = {
     removeAfter: { minutes: 5 }  // luxon format
   },
   purgeQueueJob: {
-    repeatEveryMs: 10 * 1000
+    repeatEveryMs: 60 * 1000
   }
 };
 
