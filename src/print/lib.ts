@@ -20,13 +20,13 @@ export type PrintJob = {
   templatePath: string;
   userId: number;
   fillData?: Record<string, any>;
-  renderTimeout?: number;
 };
 export type PrintJobOutput = {
   path: string;
 };
 
 
+const DEFAULT_JOB_TIMEOUT = 60 * 1000;  // ms
 const logger = new Logger('PrintLib');
 
 
@@ -92,18 +92,31 @@ export function fillTemplate(inputPath: string, fillData: Record<string, any>): 
 
 export function renderToPDF(doc: temp.FileResult, timeout?: number) {
   const { dir, name } = path.parse(doc.name);
+  const outputPDF = path.join(dir, name + '.pdf');
+
+  // 'sleep 3 && exit -1' - to test an error
+  // 'sleep 90' - to test a timeout
+  const command = `soffice --invisible --headless --convert-to pdf --outdir ${dir} ${doc.name}`;
+  const options = { timeout: timeout ?? DEFAULT_JOB_TIMEOUT };
+
   // Use async version of the child_process.exec because the blocking one is causing the stack overflow
   // error (weird). The async one cannot distinguish the timeout error from other SIGKILL-caused
   // termination, though
-  return new Promise<string>((resolve, reject) => child_process.exec(
-    `soffice --invisible --headless --convert-to pdf --outdir ${dir} ${doc.name}`,
-    { timeout: timeout ?? (30 * 1000) },
+  return new Promise<string>((resolve, reject) => child_process.exec(command, options,
     (error, stdout, stderr) => {
-      doc.removeCallback();  // we don't need the .docx file anymore, don't wait and remove it now
+      doc.removeCallback();  // we don't need the .DOCX file anymore
+
       if (error) {
         reject(error);
       } else {
-        resolve(path.join(dir, name + '.pdf'));
+        try {
+          if (fs.statSync(outputPDF).size <= 0) {
+            throw new Error('Output PDF file is empty');
+          }
+          resolve(outputPDF);
+        } catch (error) {
+          reject(error);
+        }
       }
     })
   );
