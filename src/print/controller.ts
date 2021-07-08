@@ -46,7 +46,7 @@ export class PrintController {
     @Param('fileId', ParseUUIDPipe) fileId: string,
     @Res() res: Response
   ) {
-    const filePath = await this.templateFilesService.download(fileId).catch(error => {
+    const [path, name] = await this.templateFilesService.download(fileId).catch(error => {
       if (error.name === 'EntityNotFound') {
         throw new NotFoundException(`TemplateFile with id="${fileId}" not found`);
       } else if (error.message) {
@@ -55,7 +55,7 @@ export class PrintController {
         throw error;
       }
     });
-    res.download(filePath);
+    res.download(path, name);
   }
 
 
