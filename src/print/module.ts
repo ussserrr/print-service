@@ -37,7 +37,7 @@ import { PrintController } from './controller';
       }]
     }),
     forwardRef(() => TemplateFilesModule),
-    forwardRef(() => TemplateTypesModule)  // need this for successful resolutions
+    forwardRef(() => TemplateTypesModule)
   ],
   controllers: [PrintController],
   providers: [
@@ -73,13 +73,13 @@ export class PrintModule implements NestModule, OnModuleInit {
       try {
         fs.accessSync(this.config.cachePath, fs.constants.F_OK);
       } catch {
-        this.logger.warn(`print.config.cachePath path (${this.config.cachePath}) doesn't exist, creating one...`);
+        this.logger.warn(`print cachePath path (${this.config.cachePath}) doesn't exist, creating one...`);
         fs.mkdirSync(this.config.cachePath, { recursive: true });
       }
       // Check we have necessary file-system permissions (read/write)
       fs.accessSync(this.config.cachePath, fs.constants.R_OK | fs.constants.W_OK);
     } else {
-      this.logger.log("print.config.cachePath path not set, system's location for temp files will be used");
+      this.logger.log("print cachePath path not set, system's location for temp files will be used");
     }
   }
 }

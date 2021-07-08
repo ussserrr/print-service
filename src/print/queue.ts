@@ -19,6 +19,7 @@ export class PrintQueue {
   /**
    * On startup, there may be a failed "purge-queue" job from the last time. It is OK and the reason
    * of failure is hidden somewhere in the Bull internals.
+   *
    * TODO: Google it (see the "failedReason" text below) and fix it
    */
   constructor(
@@ -34,8 +35,14 @@ export class PrintQueue {
         this.logger.log(`Failed "${PURGE_QUEUE_JOB_NAME}" job ${job.id} found, it will be removed`);
         return job.remove();
       })))
-      // From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are the same"
-      // (i.e. it will be "added" but no duplicates will be planted, even for multi-instance configuration)
+      /**
+       * From docs: "Bull is smart enough not to add the same repeatable job if the repeat options are
+       * the same" (i.e. it will be "added" but no duplicates will be planted, even for multi-instance
+       * configuration)
+       *
+       * TODO: should probably remove all previous jobs anyway because if settings have changed we
+       * will have 2 jobs... (tested)
+       */
       .then(() => queue.add(PURGE_QUEUE_JOB_NAME, null, {
         repeat: { every: config.purgeQueueJob.repeatEveryMs },
         removeOnComplete: true
@@ -48,13 +55,13 @@ export class PrintQueue {
    */
    @OnGlobalQueueCompleted()
   async onGlobalCompleted(jobId: number, result: any) {
-    const job = await this.queue.getJob(jobId);
-    if (
-      job?.name === PRINT_JOB_NAME &&
-      job.returnvalue?.path?.length
-    ) {
-      console.log('(Global) on completed: job', job.id);
-    }
+    // const job = await this.queue.getJob(jobId);
+    // if (
+    //   job?.name === PRINT_JOB_NAME &&
+    //   job.returnvalue?.path?.length
+    // ) {
+    //   console.log('(Global) on completed: job', job);
+    // }
   }
 
   @OnGlobalQueueFailed()

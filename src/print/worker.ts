@@ -1,19 +1,21 @@
 import { Logger } from '@nestjs/common';
 
-import { Job, DoneCallback } from 'bull';
+import type { Job, DoneCallback } from 'bull';
 
-import * as print from './lib';
+import * as lib from './lib';
 
 
-export default async function(job: Job<print.PrintJob>, cb: DoneCallback) {
-  const logger = new Logger('PrintWorker');
-  logger.log('Start worker for job: ' + job.id);
+const logger = new Logger('PrintWorker');
+
+
+export default async function(job: Job<lib.PrintJob>, done: DoneCallback) {
+  logger.log('Serving the job: ' + job.id);
 
   try {
-    const filledDocx = print.fillTemplate(job.data.templatePath, job.data.fillData ?? {});
-    const renderedPDF = await print.renderToPDF(filledDocx, job.data.renderTimeout);
-    cb(null, { path: renderedPDF });
+    const filledDocx = lib.fillTemplate(job.data.templatePath, job.data.fillData ?? {});
+    const renderedPDF = await lib.renderToPDF(filledDocx);
+    done(null, { path: renderedPDF });
   } catch (error) {
-    cb(error);
+    done(error);
   }
 }
