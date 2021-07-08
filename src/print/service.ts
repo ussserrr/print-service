@@ -11,12 +11,18 @@ import { Job, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 
 import { Observable, fromEventPattern, merge, from } from 'rxjs';
-import { filter, mergeMap } from 'rxjs/operators';
+import { filter, map, mergeMap } from 'rxjs/operators';
 
 import printConfig, { PRINT_JOB_NAME, PRINT_QUEUE_NAME } from 'src/config/print.config';
 import { OwnerDescription } from 'src/template-types/entities/entity';
 import appConfig from 'src/config/app.config';
 import { PrintJob } from './lib';
+
+
+type DoneMessage = {
+  token: string;
+  error?: string;
+}
 
 
 @Injectable()
@@ -30,7 +36,7 @@ export class PrintService {
   ) {}
 
 
-  listenForJobs(userId: number): Observable<Job<PrintJob>> {
+  listenForJobs(userId: number): Observable<DoneMessage> {
     const listeners = ['completed', 'failed'].map(eventType => fromEventPattern(
       handler => {
         this.queue.addListener('global:' + eventType, handler);
@@ -50,17 +56,25 @@ export class PrintService {
       filter(job =>
         job?.name === PRINT_JOB_NAME &&
         job.data.userId === userId
-      )
+      ),
+      map((job: Job<PrintJob>) => ({  // prepare the result to consume by the controller
+        token: job.id as string,
+        error: job.returnvalue?.path
+          // "failedReason" can actually be present even if a "returnvalue" is defined
+          // (e.g. after several attempts)
+          ? undefined
+          // Warning! Exposes internal details
+          : job.failedReason
+      }))
     );
 
-    return observable as Observable<Job<PrintJob>>;
+    return observable;
   }
 
 
   async print(templatePath: string, userId: number, fillData?: Record<string, any>) {
     const token = uuidv4();
 
-    console.log('adding the job...', 'pid:', process.pid);  // TODO
     await this.queue.add(PRINT_JOB_NAME, { templatePath, userId, fillData }, {
       jobId: token,  // assign custom JobID which we also return to a user so they can refer to it to retrieve a result
       timeout: this.config.printJob.timeoutMs,
@@ -87,7 +101,6 @@ export class PrintService {
 
 
   async getConfig() {
-    // await new Promise(resolve => setTimeout(resolve, 10000));
     return _.merge(
       _.pick(this.configApp, 'filesToKeep', 'allowedFileTypes'),
       _.pick(this.config, 'printJob'),
