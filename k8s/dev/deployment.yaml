@@ -21,9 +21,11 @@ spec:
         ports:
         - containerPort: 4000
         volumeMounts:
-        - mountPath: /usr/src/app
-          name: app-src
+        - name: app-src
+          mountPath: /usr/src/app
         env:
+          - name: NODE_ENV
+            value: development
           - name: URL_PREFIX
             value: /api
           - name: NODE_PORT
