@@ -36,7 +36,7 @@ async function getUniqueNameFromTitle(mode: Mode, parentPath: string, title: str
       err => resolve(err ? false : true))
   );
 
-  if (nameExists && mode === 'create') {
+  if (nameExists) {
     // In case the path does somehow already exist, generate new name
     name = name + '_' + new Date().valueOf();  // use current date as randomization factor
   }

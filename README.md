@@ -12,13 +12,10 @@ $ npm install
 
 ```bash
 # development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
+$ npm run prebuild && NODE_ENV=development npm run start:dev
 
 # production mode
-$ npm run start:prod
+$ kubectl apply -f k8s/prod -f k8s/ingress.yaml -f k8s/service.yaml
 ```
 
 ## Test
